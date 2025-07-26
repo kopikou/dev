@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Столбец с id
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Укажите столбец, содержащий id</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.id_col.errors }}
+            <label for="{{ form.id_col.id_for_label }}">Столбец с id:</label>
+            {{ form.id_col }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.data_columns.errors }}
+            {{ form.data_columns }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

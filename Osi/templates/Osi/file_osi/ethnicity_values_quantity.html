@@ -1,0 +1,27 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Разделение выборки по этническому признаку
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Укажите количество этнических групп для разделения выборки</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.ethnicity_values_quantity.errors }}
+            <label for="{{ form.ethnicity_values_quantity.id_for_label }}">Количество:</label>
+            {{ form.ethnicity_values_quantity }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.unique_values_quantity.errors }}
+            {{ form.unique_values_quantity }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

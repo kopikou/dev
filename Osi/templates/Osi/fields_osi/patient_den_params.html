@@ -1,0 +1,33 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Пациент
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите информацию о пациенте</p>
+    <h4>Параметры АОЗ</h4>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ den_param_formset.management_form }}
+        {% for den_param_form in den_param_formset %}
+            <div class="fieldWrapper">
+                {{ den_param_form.name.errors }}
+                {{ den_param_form.value.errors }}
+                {{ den_param_form.norm.errors }}
+                <label for="{{ den_param_form.name.id_for_label }}">Параметр {{ forloop.counter }}:</label>
+                {{ den_param_form.name }} = {{ den_param_form.value }} (Норма: {{ den_param_form.norm }})
+            </div>
+            <div class="fieldWrapper">
+                {{ den_param_form.data_columns.errors }}
+                {{ den_param_form.data_columns }}
+            </div>
+            <div class="fieldWrapper">
+                {{ den_param_form.user_session_key.errors }}
+                {{ den_param_form.user_session_key }}
+            </div>
+        {%  endfor %}
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="{% static 'Pcos/css/pcos_style_form.css' %}" /> 
+	<link rel="stylesheet" href="{% static 'Pcos/css/pcos_style_info.css' %}" /> 
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+	<title> Диагностика СПКЯ: авторизация </title>
+</head>
+<body>
+	<div class="draw_field">
+		<table class="table_" style="display:table;">
+	<tr class="sheet_name" > 
+		<td colspan="2"> 
+			<a> Авторизация в программе ИС регистр СПКЯ </a>
+			
+		</td>
+	</tr>
+			<tr class="table_name" > 
+				<td colspan="2"> <a> АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ </a></td>
+			</tr>
+
+
+	<form action="" method="POST">
+		{% csrf_token %}
+				
+		<tr class="table_string"> 
+				<td class="table_string_left">Ваше имя:
+					<a data-tooltip="Для получения персонального имени пользователя и пароля обратитесь к администратору">
+						<i id="help-upload" class="bi bi-info-circle" style="font-size: 1rem;"> </i>
+					</a>
+				</td>	
+				<td class="table_string_right"><a> <input type="text" name="username" placeholder="Имя пользователя"></a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a> Пароль:</a> 
+				</td>	
+				<td class="table_string_right"><a> <input type="password" name="password" placeholder="Пароль"></a> 
+				</td>	
+		</tr>
+		
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>	
+				<td class="table_string_right">	
+					<input class="btn" style="width:115px; height: 23px" type="submit"   value="Войти" />
+				</td>
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>		
+				<td class="table_string_right">	
+						<a href="{% url 'Starts:products' %}" ><button type="button" style="width:115px; height: 23px">Назад</button></a>
+				</td>
+		</tr>	
+		
+	</form>	
+</table>
+</div>
+</body>
+</html>

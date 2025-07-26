@@ -1,0 +1,247 @@
+<!{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" href="{% static 'Pcos/css/pcos_style_form.css' %}" /> 
+	<script type="text/javascript" charset="utf8" src="{% static 'Pcos/datatables/jquery-3.5.1.js' %}"></script>
+	<title>Лабораторные исследования</title>
+</head>	
+
+<body>
+<div class="draw_field">
+<table class="table_" style="display:table;">
+	<tr class="sheet_name" > 
+		<td colspan="2"> 
+			{%if new_rec is 1 %}				
+			<img src={% static 'Pcos/img/pencil.png' %}> Ввод данных новых ЛА 
+			
+			{% else %}
+			<img src={% static 'Pcos/img/pencil.png' %}> Редактирование данных ЛА ID {{form.instance.id}} 
+			{%  endif  %}
+		</td>
+	</tr>
+	<tr class="table_string">
+		<td class="table_string_left"> <a> Код ЛА ID </a> </td>
+		<td class="table_string_right"> <label> {{form.instance.id}} </label> </td>
+	</tr>
+	<tr class="table_name" > 
+		<td colspan="2"> <a> РЕЗУЛЬТАТЫ ЛАБОРАТОРНЫХ АНАЛИЗОВ </a></td>
+	</tr>
+	<form  method="post" >
+		{%csrf_token%}
+		<tr class="table_string"> 
+				<td class="table_string_left"><a> ФИО пациента</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.patient_key}}</a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a> Визит</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.visit_key}}</a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Дата анализа</a> 
+				</td>	
+				<td class="table_string_right"><a >{{form.date}}</a> 
+				</td>	
+		</tr>
+		</tr>
+				<tr class="table_string"> 
+				<td class="table_string_left"><a>День менструального цикла</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.day_mens_prl}}</a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Тестостерон</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_testosteron}} Нмоль/л</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>СССГ</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_shbg}} Нмоль/л</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>ДГЭАС</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_dheas}} мкмоль/л</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>ТТГ</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_tsh}} мЕд/л</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>17ОН прогестерон</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_17hp}} Нг/мл</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Пролактин</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_prl}} мЕд/л</a> 
+				</td>	
+		</tr>
+		<tr class="table_name" > 
+				<td colspan="2"> <a> НОРМАТИВНЫЕ ЗНАЧЕНИЯ (региональные нормы)</a></td>
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Тестостерон (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_testosteron_max}} Нмоль/л</a> 
+				</td>	
+		</tr>
+	
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>ИСА (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_IFA_max}} </a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>ДГЭАС (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_dheas_max}} мкмоль/л</a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>ТТГ (нижняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_tsh_min}} мЕд/л</a> 
+				</td>	
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>ТТГ (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_tsh_max}} Мг/Л</a> 
+				</td>	
+		</tr>
+		
+		
+		<tr class="table_name" > 
+				<td colspan="2"> <a> НОРМАТИВНЫЕ ЗНАЧЕНИЯ д.м.ц. &#8804 9 или &#62 35 (региональные нормы)</a></td>
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>17ОН прогестерон (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_17hp_max_1}} Нг/мл</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Пролактин (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_prl_max_1}} мЕд/л</a> 
+				</td>	
+		</tr>
+		
+		<tr class="table_name" > 
+				<td colspan="2"> <a> НОРМАТИВНЫЕ ЗНАЧЕНИЯ д.м.ц. &#62 9 (региональные нормы)</a></td>
+		</tr>
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Пролактин (верхняя граница нормы)</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.value_prl_max_2}} мЕд/л</a> 
+				</td>	
+		</tr>
+		
+		
+		<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>	
+				<td class="table_string_right"><input  type="submit" value="Сохранить" style="width:115px; height: 23px">
+				</td>
+		</tr>
+		<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>		
+				<td class="table_string_right">	
+						<a href="{% url 'Pcos:view_full' patient_key %}" ><button type="button" style="width:115px; height: 23px">Закрыть</button></a>
+				</td>
+		</tr>	
+		<tr class="table_string"> 
+				<td class="table_string_left"><a>Для перевода значений из одних единиц измерения в другие  воспользуйтесь калькулятором:</a> 
+				</td>		
+				<td class="table_string_right">	
+					<button type="button" style="width:115px; height: 23px" onClick="window.open('https://www.slimhauz.ru/stoimost/analizy/kalkulyator_analizov/');">Перейти</button>
+				</td>
+		</tr>	
+	</form>	
+</table>
+</div>
+
+<script>
+var isSubmitting = false;
+$(document).ready(function () {
+
+	if ({{new}}) {
+		function disableBack() { window.history.forward() }
+    	window.onload = disableBack();
+    	window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
+
+    	patient_key=document.getElementById('id_patient_key').value
+	document.getElementById('id_value_tsh_min').value=0.1
+	document.getElementById('id_value_tsh_max').value=4
+	document.getElementById('id_value_dheas_max').value=355
+	document.getElementById('id_value_17hp_max_1').value=6.9
+	document.getElementById('id_value_prl_max_1').value=726	
+	document.getElementById('id_value_prl_max_2').value=944		
+	$.ajax({  
+  		url: "/pcos/get_ethnicity",
+ 		type: "GET",
+ 		data: {'patient_key':patient_key},
+ 		success: function(result){
+			ethnicity_key		= result.ethnicity_key
+			if (ethnicity_key==null)			
+			{
+				document.getElementById('id_value_testosteron_max').value=67.34
+				document.getElementById('id_value_IFA_max').value=5.42		
+			}
+			if (ethnicity_key==1)
+			{
+				document.getElementById('id_value_testosteron_max').value=73.9
+				document.getElementById('id_value_IFA_max').value=6.9
+			}
+			if (ethnicity_key==2 || ethnicity_key==3)
+			{
+				document.getElementById('id_value_testosteron_max').value=41.03
+				document.getElementById('id_value_IFA_max').value=2.92
+			}
+	} 
+	});
+
+}
+
+    $('form').submit(function(){
+        isSubmitting = true
+    })
+    $('form').data('initial-state', $('form').serialize());
+    $(window).on('beforeunload', function() {  
+        if (!isSubmitting && $('form').serialize() != $('form').data('initial-state')){
+            return 'На форме есть несохраненные изменения.'
+        }
+    });
+})
+
+
+
+
+	
+
+</script>
+</body>

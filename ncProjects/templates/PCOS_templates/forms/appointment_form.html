@@ -1,0 +1,172 @@
+<!{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" charset="utf8" src="{% static 'datatables/jquery-3.5.1.js' %}"></script>
+	<link rel="stylesheet" href="{% static 'css/pcos_style_form.css' %}" /> 
+	<title>Прием врача</title>
+</head>	
+<body>
+
+<div class="draw_field">
+<table class="table_" style="display:table;">
+	<tr class="sheet_name" > 
+		<td colspan="2"> 
+			{%if new is 1 %}				
+			<img src={% static 'img/pencil.png' %}> Editing new record 
+			
+			{% else %}
+			<img src={% static 'img/pencil.png' %}> Editing existing record ID {{form.instance.id}} 
+			{%  endif  %}
+		</td>
+	</tr>
+	<tr class="table_string">
+		<td class="table_string_left"> <a> Record ID </a> </td>
+		<td class="table_string_right"> <label> {{form.instance.id}} </label> </td>
+	</tr>
+	<tr class="table_name" > 
+		<td colspan="2"> <a> ПРИЕМ </a></td>
+	</tr>
+	<form  method="post" >
+			{%csrf_token%}
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> ФИО пациента</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.patient_key}}</a> 
+				</td>	
+				
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> Визит</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.visit_key}}</a> 
+				</td>	
+				
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>ФИО доктора</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.doctor_key}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> Дата приема</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.date}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_name" > 
+				<td colspan="2"> <a>Менструальный анамнез</a> </td>
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Менструальный цикл в настоящее время</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.periods}}</a> 
+				</td>	
+			</tr>
+		
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Аменорея</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.type_menstrual_disorders_1}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Олигоменорея</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.type_menstrual_disorders_3}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>АМК</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.type_menstrual_disorders_4}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Минимальная продолжительность менструального цикла</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.min_menstrual}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Максимальная продолжительность менструального цикла</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.max_menstrual}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_name" > 
+				<td colspan="2"> <a>Оценка гирсутизма</a> </td>
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Гирсутное число Ферримана-Голлвея</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Calculate_Hirsutism()"> {{form.sum_physician}} <button type="button" style="width:25px; height: 23px" onClick="window.open('https://agapovmd.ru/calc/hirs.htm');">...</button></a> 
+				</td>	
+			</tr>
+				<tr class="table_string"> 
+				<td class="table_string_left"><a>Гирсутизм</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.hirsutism}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>	
+				<td class="table_string_right"><input  type="submit" value="Сохранить" style="width:115px; height: 23px">
+				</td>
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>
+			
+				<td class="table_string_right">	
+
+					<a href="{% url 'PCOS_app:view_full' patient_key %}" ><button type="button" style="width:115px; height: 23px">Закрыть</button></a>
+				
+				</td>
+					
+			</tr>
+			
+	</form>
+	
+</table>
+
+</div>
+<script>
+
+function Calculate_Hirsutism()
+{
+sum_physician=document.getElementById('id_sum_physician').value	
+if (sum_physician>4){
+	Hirsutism=2
+}
+else{
+	Hirsutism=1
+	}
+document.getElementById('id_hirsutism').value=Hirsutism
+
+}
+
+var isSubmitting = false;
+$(document).ready(function () {
+
+	if ({{new}}) {
+    function disableBack() { window.history.forward() }
+    window.onload = disableBack();
+    window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
+}
+    $('form').submit(function(){
+        isSubmitting = true
+    })
+    $('form').data('initial-state', $('form').serialize());
+    $(window).on('beforeunload', function() {
+        if (!isSubmitting && $('form').serialize() != $('form').data('initial-state')){
+            return 'На форме есть несохраненные изменения.'
+        }
+    });
+})
+</script>
+</body>
+</html>

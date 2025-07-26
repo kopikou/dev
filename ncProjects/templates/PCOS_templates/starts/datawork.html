@@ -1,0 +1,57 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title> Диагностика СПКЯ </title>
+	<link rel="stylesheet" href="{% static 'css/pcos_style_index.css' %}" /> 
+	<link rel="stylesheet" href="{% static 'css/pcos_style_info.css' %}" /> 
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+</head>
+<body>
+	<div class="inner">
+		<span class="header__subheading"> Федеральное государственное бюджетное научное учреждение</span> 
+		<a href="https://health-family.ru/ru/"  target="blank" class="header__logotype"> <img src={% static 'img/logo.png' %}></a> 
+	</div>
+	<nav id="menu"> 
+		<ul id="horizontal-multilevel-menu" class="main-navigation inner">
+			<li> 
+				<a href="/" class="root__item">Об СПКЯ</a>
+			</li>
+			<li> 
+				<a href="selfdiagnostics" class="root__item">Самодиагностика</a>
+			</li>
+			<li> 
+				<a href="contacts" class="root__item">Контакты</a>
+			</li>
+			<li> 
+				<a href="login_user" class="root__item__selected">Работа с данными</a>
+			</li>
+		</ul>
+	</nav>
+	<div class="content__sheet">
+		<div class="user_identification">
+				<form action="" method="POST">
+				{% csrf_token %}
+				
+				<h3>
+					<b>Ваше имя:
+					<a data-tooltip="Для получения персонального имени пользователя и пароля обратитесь к администратору">
+						<i id="help-upload" class="bi bi-info-circle" style="font-size: 1rem;"> </i>
+					</a>	
+					</b>
+					<br>
+   			 		<input type="text" name="username" placeholder="Имя пользователя">
+   			 	</h3>
+  				<p>
+  					<b>Пароль:</b><br>
+   			 		<input type="password" name="password" placeholder="Пароль">
+   			 	</p>
+    			<input class="btn" type="submit"   value="Войти" />
+    		
+			</form>
+			
+		</div>
+	</div>
+</body>
+</html>

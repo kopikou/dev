@@ -1,0 +1,31 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Результат
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <h3><a href="{{ osi_results_archive.osi_results_archive.url }}" download>Скачать ZIP архив с результатом</a></h3>
+    {% for url, df in urls_dfs %}
+        <h4><a href="{{ url }}" download>Скачать Файл {{ forloop.counter }}</a></h4>
+        <table width="70%">
+          <tr>
+            {% for col in df.columns %}
+              <td>
+                {{col}}
+              </td>
+            {% endfor %}
+          </tr>
+            {% for index, row in df.iterrows %}
+              <tr>
+                {% for cell in row %}
+                  <td>
+                    {{cell}}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+        </table>
+    {% endfor %}
+{% endblock %}

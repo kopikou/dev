@@ -1,0 +1,2221 @@
+{% extends 'fdb_integration/base.html' %}
+
+{% block title %}
+    Описательная статистика
+{% endblock %}
+
+{% block content %}
+    <h1>Описательная статистика</h1>
+    
+    <div class="statistics-container">
+        <!-- Навигация по типам статистики -->
+        <div class="statistics-tabs">
+            <button class="tab-button active" data-tab="descriptive">Основная статистика</button>
+            <button class="tab-button" data-tab="outliers">Выбросы</button>
+            <button class="tab-button" data-tab="correlation">Корреляция</button>
+            <button class="tab-button" data-tab="clustering">Кластеризация</button>
+            <button class="tab-button" data-tab="or">Отношения шансов</button>
+        </div>
+        
+        <!-- Контейнер для контента вкладок -->
+        <div class="tab-content">
+            <!-- Вкладка основной статистики -->
+            <div id="descriptive-tab" class="tab-pane active">
+                <div class="statistics-form">
+                    <h3>Основная описательная статистика</h3>
+                    <form id="descriptiveForm">
+                        <div class="form-group">
+                            <label for="descriptive-file-select">Выберите файл:</label>
+                            <select id="descriptive-file-select" class="form-control" required>
+                                <option value="">-- Выберите файл --</option>
+                                <!-- Файлы будут загружены через JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="descriptive-columns">Выберите параметры для анализа:</label>
+                            <select id="descriptive-columns" class="form-control" multiple size="5" required>
+                                <!-- Колонки будут загружены после выбора файла -->
+                            </select>
+                            <small class="form-text text-muted">Удерживайте Ctrl для выбора нескольких параметров</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="descriptive-groups">Группировка (необязательно):</label>
+                            <div id="descriptive-groups-container">
+                                <!-- Группы будут добавляться динамически -->
+                            </div>
+                            <button type="button" id="add-group-btn" class="btn btn-secondary">Добавить группу</button>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" id="include-nan" class="form-check-input" checked>
+                            <label for="include-nan" class="form-check-label">Включать NaN значения</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Рассчитать</button>
+                            <button type="button" id="descriptive-download" class="btn btn-success" disabled>Скачать в Excel</button>
+                        </div>
+                    </form>
+                    <div id="descriptiveResult" class="result-container">
+                        <div class="loading-spinner" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Загрузка...</span>
+                            </div>
+                            <p>Идет расчет статистики...</p>
+                        </div>
+                        <div id="descriptive-table-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладка выбросов -->
+            <div id="outliers-tab" class="tab-pane">
+                <div class="statistics-form">
+                    <h3>Анализ выбросов</h3>
+                    <form id="outliersForm">
+                        <div class="form-group">
+                            <label for="outliers-file-select">Выберите файл:</label>
+                            <select id="outliers-file-select" class="form-control" required>
+                                <option value="">-- Выберите файл --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="outliers-columns">Выберите параметры для анализа:</label>
+                            <select id="outliers-columns" class="form-control" multiple>
+                                <!-- Колонки будут загружены динамически после выбора файла -->
+                            </select>
+                            <small class="form-text text-muted">Удерживайте Ctrl для выбора нескольких параметров</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="outliers-method">Метод обнаружения выбросов:</label>
+                            <select id="outliers-method" class="form-control" required>
+                                <option value="">-- Выберите метод --</option>
+                                <option value="0">Z-оценка</option>
+                                <option value="1">Модифицированная Z-оценка</option>
+                                <option value="2">Межквартильный размах (IQR)</option>
+                                <option value="3">Изолированный лес (Isolation Forest)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="outliers-target">Целевой параметр (необязательно):</label>
+                            <select id="outliers-target" class="form-control">
+                                <option value="">-- Не использовать --</option>
+                                <!-- Колонки будут загружены динамически после выбора файла -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" id="outliers-update" class="form-check-input">
+                            <label for="outliers-update" class="form-check-label">Обновить исходные данные с результатами</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Найти выбросы</button>
+                            <button type="button" id="outliers-download" class="btn btn-secondary" disabled>Скачать результат</button>
+                        </div>
+                    </form>
+
+                    <div id="outliersResult" class="result-container">
+                        <div class="result-placeholder">Здесь будут отображены результаты анализа выбросов</div>
+                        <div id="outliersTableContainer" style="display: none;">
+                            <h4>Результаты обнаружения выбросов</h4>
+                            <div class="table-responsive">
+                                <table id="outliersTable" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Строка</th>
+                                            <th>Колонка</th>
+                                            <th>Значение</th>
+                                            <th>Выброс</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладка корреляции -->
+            <div id="correlation-tab" class="tab-pane">
+                <div class="statistics-form">
+                    <h3>Корреляционный анализ</h3>
+                    <form id="correlationForm">
+                        <div class="form-group">
+                            <label for="correlation-file-select">Выберите файл:</label>
+                            <select id="correlation-file-select" class="form-control" required>
+                                <option value="">-- Выберите файл --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="left-columns">Выберите левые параметры (колонки):</label>
+                            <select id="left-columns" class="form-control" multiple required></select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="right-columns">Выберите правые параметры (колонки):</label>
+                            <select id="right-columns" class="form-control" multiple required></select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="correlation-method">Метод корреляции:</label>
+                            <select id="correlation-method" class="form-control" required>
+                                <option value="0">Пирсона</option>
+                                <option value="1">Кендалла</option>
+                                <option value="2">Спирмена</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="round-value">Округление до знаков:</label>
+                            <input type="number" id="round-value" class="form-control" min="0" max="10" value="2">
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="dropna" checked>
+                            <label class="form-check-label" for="dropna">Удалять пропущенные значения</label>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary">Рассчитать</button>
+                            <button type="button" id="download-correlation" class="btn btn-secondary" disabled>Скачать результат</button>
+                        </div>
+                    </form>
+                    <div id="correlationResult" class="result-container"></div>
+                </div>
+            </div>
+            
+            <!-- Вкладка кластеризации -->
+            <div id="clustering-tab" class="tab-pane">
+                <div class="statistics-form">
+                    <h3>Кластерный анализ</h3>
+                    <form id="clusteringForm">
+                        <div class="form-group">
+                            <label for="clustering-file-select">Выберите файл:</label>
+                            <select id="clustering-file-select" class="form-control" required>
+                                <option value="">-- Выберите файл --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="clustering-columns">Выберите параметры для кластеризации:</label>
+                            <select id="clustering-columns" class="form-control" multiple required></select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clustering-method">Метод кластеризации:</label>
+                            <select id="clustering-method" class="form-control" required>
+                                <option value="kmeans">K-means</option>
+                                <!-- Можно добавить другие методы по мере их реализации -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clustering-n-clusters">Количество кластеров:</label>
+                            <input type="number" id="clustering-n-clusters" class="form-control" min="2" value="3" required>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" id="clustering-update-df" class="form-check-input">
+                            <label for="clustering-update-df" class="form-check-label">Обновить исходные данные с результатами кластеризации</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Выполнить кластеризацию</button>
+                            <button type="button" id="clustering-download" class="btn btn-secondary" disabled>Скачать результат</button>
+                        </div>
+                    </form>
+                    <div id="clusteringResult" class="result-container">
+                        <div id="clustering-plot"></div>
+                        <div id="clustering-stats"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладка отношений шансов -->
+            <div id="or-tab" class="tab-pane">
+                <div class="statistics-form">
+                    <h3>Анализ отношений шансов</h3>
+                    <form id="orForm">
+                        <div class="form-group">
+                            <label for="or-file-select">Выберите файл:</label>
+                            <select id="or-file-select" class="form-control" required>
+                                <option value="">-- Выберите файл --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="or-target-column">Целевой параметр(бинарный):</label>
+                            <select id="or-target-column" class="form-control" required disabled>
+                                <option value="">-- Сначала выберите файл --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="or-split-column">Параметр для разделения (бинарный, опционально):</label>
+                            <select id="or-split-column" class="form-control">
+                                <option value="">-- Не использовать --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="or-columns">Параметры для анализа (опционально):</label>
+                            <select id="or-columns" class="form-control" multiple>
+                                <!-- Колонки будут загружены через JS -->
+                            </select>
+                            <small class="form-text text-muted">Удерживайте Ctrl для выбора нескольких параметров</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="button" id="or-calculate-btn" class="btn btn-primary">Рассчитать</button>
+                            <button type="button" id="or-download-btn" class="btn btn-secondary" disabled>Скачать результат (XLSX)</button>
+                        </div>
+                    </form>
+                    <div id="orResult" class="result-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ошибок -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Ошибка</h3>
+            <p id="error-message"></p>
+            <button class="btn btn-primary modal-close">Закрыть</button>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        const serviceUrl = '{{ service_url }}';
+        const storageServiceUrl = '{{ storage_service_url }}';
+        console.log('Service URL:', serviceUrl);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчики вкладок
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Удаляем активный класс у всех кнопок и панелей
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabPanes.forEach(pane => pane.classList.remove('active'));
+                    
+                    // Добавляем активный класс к текущей кнопке и соответствующей панели
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Модальное окно
+            const modal = document.getElementById('error-modal');
+            const span = document.querySelector('.close');
+            const modalCloseBtn = document.querySelector('.modal-close');
+            
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+            
+            span.onclick = closeModal;
+            modalCloseBtn.onclick = closeModal;
+            
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+            
+            // Функция для отображения ошибок
+            function showError(message) {
+                document.getElementById('error-message').textContent = message;
+                modal.style.display = 'block';
+            }
+            
+            // Загрузка списка файлов при открытии страницы
+            loadUserFiles();
+            
+            async function loadUserFiles() {
+                const authToken = '{{ request.session.auth_token }}';
+                if (!authToken) {
+                    showError('Требуется авторизация');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${storageServiceUrl}/storage/list/my`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка загрузки файлов');
+                    
+                    const files = await response.json();
+                    
+                    // Обновляем все селекторы файлов
+                    const fileSelects = [
+                        'descriptive-file-select',
+                        'outliers-file-select',
+                        'correlation-file-select',
+                        'clustering-file-select',
+                        'or-file-select'
+                    ];
+                    
+                    fileSelects.forEach(selectId => {
+                        const select = document.getElementById(selectId);
+                        select.innerHTML = '<option value="">-- Выберите файл --</option>';
+                        files.forEach(file => {
+                            const option = document.createElement('option');
+                            option.value = file.id;
+                            option.textContent = `${file.filename} (${new Date(file.upload_date).toLocaleDateString()})`;
+                            select.appendChild(option);
+                        });
+                    });
+                } catch (error) {
+                    showError('Не удалось загрузить список файлов: ' + error.message);
+                }
+            }
+
+            // Основная описательная статистика
+            async function loadFileAndUpdateColumns(fileId) {
+                const authToken = '{{ request.session.auth_token }}';
+                try {
+                    // Сначала загружаем файл
+                    await fetch(`${serviceUrl}/data/load/${fileId}?sep=,`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    // Затем запрашиваем колонки
+                    const columns = await getFileColumns(fileId);
+                    updateColumnsSelect('descriptive-columns', columns);
+                } catch (error) {
+                    showError('Ошибка загрузки файла или колонок: ' + error.message);
+                }
+            }
+
+            // Обновляем обработчик выбора файла
+            document.getElementById('descriptive-file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                await loadFileAndUpdateColumns(fileId);
+            });
+
+            // Функция для получения колонок файла
+            async function getFileColumns(fileId) {
+                const authToken = '{{ request.session.auth_token }}';
+                const response = await fetch(`${serviceUrl}/data/columns?file_id=${fileId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Ошибка загрузки колонок');
+                return await response.json();
+            }
+
+            // Обновление select с колонками
+            function updateColumnsSelect(selectId, columns) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '';
+                columns.forEach(column => {
+                    const option = document.createElement('option');
+                    option.value = column;
+                    option.textContent = column;
+                    select.appendChild(option);
+                });
+            }
+
+            // Обработчик добавления группы
+            document.getElementById('add-group-btn').addEventListener('click', async function() {
+                const container = document.getElementById('descriptive-groups-container');
+                const fileId = document.getElementById('descriptive-file-select').value;
+                
+                if (!fileId) {
+                    showError('Сначала выберите файл');
+                    return;
+                }
+                
+                try {
+                    // Получаем список колонок из файла
+                    const columns = await getFileColumns(fileId);
+                    
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'group-item mb-3 p-3 border rounded';
+                    groupDiv.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label">Параметр для группировки</label>
+                                <select class="form-select group-column">
+                                    <option value="">-- Выберите параметр --</option>
+                                    ${columns.map(col => `<option value="${col}">${col}</option>`).join('')}
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">Оператор</label>
+                                <select class="form-select group-operation">
+                                    <option value="==">=</option>
+                                    <option value="!=">≠</option>
+                                    <option value=">">></option>
+                                    <option value="<"><</option>
+                                    <option value=">=">≥</option>
+                                    <option value="<=">≤</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Значение для фильтрации</label>
+                                <input type="text" class="form-control group-value" placeholder="Введите значение" disabled>
+                                <small class="form-text text-muted">Введите точное значение для фильтрации</small>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger remove-group w-100">Удалить</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(groupDiv);
+                    
+                    // Обработчик выбора колонки
+                    const columnSelect = groupDiv.querySelector('.group-column');
+                    columnSelect.addEventListener('change', function() {
+                        const column = this.value;
+                        const valueInput = groupDiv.querySelector('.group-value');
+                        
+                        if (!column) {
+                            valueInput.disabled = true;
+                            valueInput.placeholder = "Сначала выберите параметр";
+                        } else {
+                            valueInput.disabled = false;
+                            valueInput.placeholder = "Введите значение";
+                        }
+                    });
+                    
+                    // Обработчик удаления группы
+                    groupDiv.querySelector('.remove-group').addEventListener('click', function() {
+                        container.removeChild(groupDiv);
+                    });
+                    
+                } catch (error) {
+                    showError('Ошибка создания группы: ' + error.message);
+                }
+            });
+
+            // Обработчик отправки формы
+            document.getElementById('descriptiveForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fileId = document.getElementById('descriptive-file-select').value;
+                const columns = Array.from(document.getElementById('descriptive-columns').selectedOptions)
+                    .map(opt => opt.value);
+                const includeNan = document.getElementById('include-nan').checked;
+                
+                // Собираем группы
+                const groups = [];
+                const groupItems = document.getElementById('descriptive-groups-container').children;
+                
+                for (let item of groupItems) {
+                    const column = item.querySelector('.group-column').value;
+                    const operation = item.querySelector('.group-operation').value;
+                    const value = item.querySelector('.group-value').value;
+                    
+                    if (column && value) {
+                        groups.push({
+                            column: column,
+                            operation: operation,
+                            value: value
+                        });
+                    }
+                }
+                
+                // Показываем спиннер загрузки
+                document.querySelector('#descriptiveResult .loading-spinner').style.display = 'block';
+                document.getElementById('descriptive-table-container').innerHTML = '';
+                
+                try {
+                    const result = await calculateDescriptiveStatistics(fileId, columns, groups, includeNan);
+                    displayDescriptiveResults(result);
+                    document.getElementById('descriptive-download').disabled = false;
+                } catch (error) {
+                    showError('Ошибка расчета статистики: ' + error.message);
+                } finally {
+                    document.querySelector('#descriptiveResult .loading-spinner').style.display = 'none';
+                }
+            });
+
+            // Функция для расчета статистики
+            async function calculateDescriptiveStatistics(fileId, columns, groups, includeNan) {
+                const authToken = '{{ request.session.auth_token }}';
+                const response = await fetch(`${serviceUrl}/statistic/descriptive`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_id: fileId,
+                        columns: columns,
+                        groups: groups,
+                        include_nan: includeNan
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Ошибка расчета статистики');
+                }
+                
+                return await response.json();
+            }
+
+            // Функция для отображения результатов
+            function displayDescriptiveResults(data) {
+                const container = document.getElementById('descriptive-table-container');
+                container.innerHTML = '';
+                
+                if (!data || Object.keys(data).length === 0) {
+                    container.innerHTML = '<p>Нет данных для отображения</p>';
+                    return;
+                }
+
+                // Создаем пояснение формата
+                const formatInfo = document.createElement('div');
+                formatInfo.className = 'alert alert-info mb-3';
+                formatInfo.innerHTML = `
+                    <strong>Формат данных:</strong>
+                    <ul class="mb-0">
+                        <li>Для числовых значений: Среднее±Станд. отклонение; Медиана (25-й перцентиль; 75-й перцентиль) Минимум-Максимум</li>
+                    </ul>
+                `;
+                container.appendChild(formatInfo);
+                
+                const table = document.createElement('table');
+                table.className = 'table table-bordered table-striped';
+                
+                // Создаем заголовок таблицы
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                
+                // Первая колонка - "Колонки"
+                const thColumns = document.createElement('th');
+                thColumns.textContent = 'Параметры';
+                headerRow.appendChild(thColumns);
+                
+                // Добавляем подсказку для заголовка "Все данные"
+                if (data['all']) {
+                    const thAll = document.createElement('th');
+                    thAll.textContent = 'Все данные';
+                    thAll.setAttribute('title', 'Среднее±Станд. отклонение; Медиана (25-й перцентиль; 75-й перцентиль) Минимум-Максимум');
+                    headerRow.appendChild(thAll);
+                }
+                
+                // Добавляем остальные заголовки (названия групп)
+                for (const groupName in data) {
+                    if (groupName !== 'columns' && groupName !== 'all') {
+                        const th = document.createElement('th');
+                        th.textContent = groupName;
+                        headerRow.appendChild(th);
+                    }
+                }
+                
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                
+                // Создаем тело таблицы
+                const tbody = document.createElement('tbody');
+                
+                // Заполняем данные
+                for (let i = 0; i < data.columns.length; i++) {
+                    const row = document.createElement('tr');
+                    
+                    // Название колонки
+                    const tdColumn = document.createElement('td');
+                    tdColumn.textContent = data.columns[i];
+                    row.appendChild(tdColumn);
+                    
+                    // Данные по группам
+                    for (const groupName in data) {
+                        if (groupName !== 'columns') {
+                            const td = document.createElement('td');
+                            td.textContent = data[groupName][i] || '-';
+                            row.appendChild(td);
+                        }
+                    }
+                    
+                    tbody.appendChild(row);
+                }
+                
+                table.appendChild(tbody);
+                container.appendChild(table);
+            }
+
+            // Функция для генерации описания значения
+            function getValueDescription(value) {
+                if (value.includes('/') && value.includes('%')) {
+                    return 'Бинарные данные: Количество единиц/Общее количество (Процент единиц)';
+                } else if (value.includes('±') && value.includes(';') && value.includes('-')) {
+                    return 'Числовые данные: Среднее±Станд. отклонение; Медиана (25-й перцентиль; 75-й перцентиль) Минимум-Максимум';
+                }
+                return value;
+            }
+
+            // Обработчик кнопки скачивания
+            document.getElementById('descriptive-download').addEventListener('click', async function() {
+                const fileId = document.getElementById('descriptive-file-select').value;
+                const columns = Array.from(document.getElementById('descriptive-columns').selectedOptions)
+                    .map(opt => opt.value);
+                const includeNan = document.getElementById('include-nan').checked;
+                
+                const groups = [];
+                const groupItems = document.getElementById('descriptive-groups-container').children;
+                for (let item of groupItems) {
+                    const column = item.querySelector('.group-column').value;
+                    const operation = item.querySelector('.group-operation').value;
+                    const value = item.querySelector('.group-value').value;
+                    
+                    if (column && value) {
+                        groups.push({
+                            column: column,
+                            operation: operation,
+                            value: value
+                        });
+                    }
+                }
+                
+                try {
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}/statistic/descriptive/fast`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            file_id: fileId,
+                            columns: columns,
+                            groups: groups,
+                            include_nan: includeNan,
+                            save_format: 'xlsx'
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка генерации файла');
+                    
+                    // Создаем ссылку для скачивания
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `descriptive_statistics_${new Date().toISOString().slice(0,10)}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    showError('Ошибка при скачивании файла: ' + error.message);
+                }
+            });
+            
+            // Анализ выбросов
+            // Загрузка колонок при выборе файла
+            document.getElementById('outliers-file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                
+                await loadFileColumns(fileId, 'outliers-columns');
+                await loadFileColumns(fileId, 'outliers-target');
+            });
+            // Обработка отправки формы выбросов
+            document.getElementById('outliersForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fileId = document.getElementById('outliers-file-select').value;
+                const method = document.getElementById('outliers-method').value;
+                const targetColumn = document.getElementById('outliers-target').value || null;
+                const updateDf = document.getElementById('outliers-update').checked;
+                const columnsSelect = document.getElementById('outliers-columns');
+                const columns = Array.from(columnsSelect.selectedOptions).map(opt => opt.value);
+                
+                if (!fileId || !method) {
+                    showError('Пожалуйста, выберите файл и метод анализа');
+                    return;
+                }
+                
+                try {
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}/statistic/outliers`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({
+                            file_id: fileId,
+                            columns: columns.length > 0 ? columns : null,
+                            y_column: targetColumn,
+                            method: parseInt(method),
+                            update_df: updateDf
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Ошибка при анализе выбросов');
+                    }
+                    
+                    const result = await response.json();
+                    displayOutliersResults(result, fileId);
+                    
+                    // Активируем кнопку скачивания
+                    document.getElementById('outliers-download').disabled = false;
+                    
+                } catch (error) {
+                    showError(error.message);
+                }
+            });
+
+            // Обработка скачивания результатов
+            document.getElementById('outliers-download').addEventListener('click', async function() {
+                const fileId = document.getElementById('outliers-file-select').value;
+                const method = document.getElementById('outliers-method').value;
+                const targetColumn = document.getElementById('outliers-target').value || null;
+                const columnsSelect = document.getElementById('outliers-columns');
+                const columns = Array.from(columnsSelect.selectedOptions).map(opt => opt.value);
+                
+                if (!fileId || !method) {
+                    showError('Пожалуйста, сначала выполните анализ выбросов');
+                    return;
+                }
+                
+                try {
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}/statistic/outliers/fast`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({
+                            file_id: fileId,
+                            columns: columns.length > 0 ? columns : null,
+                            y_column: targetColumn,
+                            method: parseInt(method),
+                            save_format: 'XLSX'
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Ошибка при скачивании результатов');
+                    }
+                    
+                    // Создаем временную ссылку для скачивания
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `outliers_analysis_${new Date().toISOString().slice(0,10)}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    showError(error.message);
+                }
+            });
+
+            // Функция для отображения результатов анализа выбросов
+            async function displayOutliersResults(result, fileId) {
+                const resultContainer = document.getElementById('outliersResult');
+                const tableContainer = document.getElementById('outliersTableContainer');
+                const tableBody = document.querySelector('#outliersTable tbody');
+                const methodValue = document.getElementById('outliers-method').value;
+                
+                // Очищаем предыдущие результаты
+                tableBody.innerHTML = '';
+                resultContainer.querySelector('.result-placeholder').style.display = 'none';
+                tableContainer.style.display = 'block';
+                
+                try {
+                    // Сначала загружаем файл в Redis
+                    const authToken = '{{ request.session.auth_token }}';
+                    const loadResponse = await fetch(`${serviceUrl}/data/load/${fileId}?sep=,`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!loadResponse.ok) {
+                        throw new Error('Не удалось загрузить файл');
+                    }
+                    
+                    // Теперь получаем данные
+                    const dataResponse = await fetch(`${serviceUrl}/data/dataframe`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!dataResponse.ok) {
+                        throw new Error('Не удалось получить данные файла');
+                    }
+                    
+                    const data = await dataResponse.json();
+                    
+                    // Проверяем структуру данных
+                    if (!data) {
+                        throw new Error('Данные файла не содержат ожидаемой структуры');
+                    }
+                    
+                    // Сопоставляем числовое значение метода с его названием
+                    const methodNames = {
+                        0: 'z_score',
+                        1: 'modified_z_score',
+                        2: 'iqr',
+                        3: 'iso_forest'
+                    };
+                    const methodName = methodNames[parseInt(methodValue)];
+                    
+                    // Обрабатываем результаты
+                    for (const [outlierColumn, outlierValues] of Object.entries(result)) {
+                        // Извлекаем имя колонки из названия результата
+                        const columnName = outlierColumn.replace(`${methodName}_outliers_`, '');
+                        
+                        // Обрабатываем каждый выброс
+                        outlierValues.forEach((isOutlier, index) => {
+                            if (isOutlier === 1) {
+                                const row = document.createElement('tr');
+                                // Получаем значение из данных
+                                const value = data[columnName] && data[columnName][index] !== undefined 
+                                    ? data[columnName][index] 
+                                    : '';
+                                
+                                row.innerHTML = `
+                                    <td>${index + 1}</td>
+                                    <td>${columnName}</td>
+                                    <td>${value}</td>
+                                    <td class="error">Да</td>
+                                `;
+                                tableBody.appendChild(row);
+                            }
+                        });
+                    }
+                    
+                    // Если не найдено выбросов
+                    if (tableBody.children.length === 0) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = '<td colspan="4">Выбросы не обнаружены</td>';
+                        tableBody.appendChild(row);
+                    }
+                } catch (error) {
+                    console.error('Ошибка при отображении результатов:', error);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="4">Ошибка: ${error.message}</td>`;
+                    tableBody.appendChild(row);
+                }
+            }
+
+            // Вспомогательная функция для загрузки колонок файла
+            async function loadFileColumns(fileId, selectId) {
+                if (!fileId) return;
+                
+                try {
+                    const authToken = '{{ request.session.auth_token }}';
+                    
+                    // 1. Сначала загружаем файл
+                    const loadResponse = await fetch(`${serviceUrl}/data/load/${fileId}?sep=,`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!loadResponse.ok) {
+                        throw new Error('Не удалось загрузить файл');
+                    }
+                    
+                    // 2. Затем получаем колонки
+                    const columnsResponse = await fetch(`${serviceUrl}/data/columns?file_id=${fileId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!columnsResponse.ok) {
+                        throw new Error('Ошибка загрузки колонок файла');
+                    }
+                    
+                    const columns = await columnsResponse.json();
+                    const select = document.getElementById(selectId);
+                    
+                    // Сохраняем текущее значение
+                    const currentValue = select.value;
+                    
+                    // Для целевого параметра сохраняем первую опцию "Не использовать"
+                    if (selectId === 'outliers-target') {
+                        const defaultOption = select.options[0];
+                        select.innerHTML = '';
+                        select.appendChild(defaultOption);
+                    } else {
+                        select.innerHTML = '';
+                    }
+                    
+                    // Добавляем колонки
+                    columns.forEach(column => {
+                        const option = document.createElement('option');
+                        option.value = column;
+                        option.textContent = column;
+                        select.appendChild(option);
+                    });
+                    
+                    // Восстанавливаем выбранное значение, если возможно
+                    if (currentValue && columns.includes(currentValue)) {
+                        select.value = currentValue;
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка при загрузке колонок:', error);
+                    showError('Не удалось загрузить колонки файла: ' + error.message);
+                }
+            }
+            
+            // Корреляционный анализ
+            // Обработчик изменения выбранного файла для корреляции
+            document.getElementById('correlation-file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                
+                try {
+                    // Загружаем файл и получаем колонки
+                    await loadFileAndUpdateColumns(fileId);
+                    const columns = await getFileColumns(fileId);
+                    
+                    // Обновляем select для колонок
+                    updateColumnsSelect('left-columns', columns);
+                    updateColumnsSelect('right-columns', columns);
+                } catch (error) {
+                    showError('Ошибка загрузки колонок: ' + error.message);
+                }
+            });
+            
+            // Функция для обновления select с колонками
+            function updateColumnsSelect(selectId, columns) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '';
+                
+                columns.forEach(column => {
+                    const option = document.createElement('option');
+                    option.value = column;
+                    option.textContent = column;
+                    select.appendChild(option);
+                });
+            }
+            
+            // Обработчик формы корреляции
+            document.getElementById('correlationForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fileId = document.getElementById('correlation-file-select').value;
+                const leftColumns = Array.from(document.getElementById('left-columns').selectedOptions)
+                    .map(option => option.value);
+                const rightColumns = Array.from(document.getElementById('right-columns').selectedOptions)
+                    .map(option => option.value);
+                const method = document.getElementById('correlation-method').value;
+                const roundValue = document.getElementById('round-value').value;
+                const dropna = document.getElementById('dropna').checked;
+                
+                if (!fileId || leftColumns.length === 0 || rightColumns.length === 0) {
+                    showError('Пожалуйста, выберите файл и колонки для анализа');
+                    return;
+                }
+                
+                try {
+                    const result = await calculateCorrelation({
+                        fileId,
+                        leftColumns,
+                        rightColumns,
+                        method: parseInt(method),
+                        roundValue: parseInt(roundValue),
+                        dropna
+                    });
+                    
+                    displayCorrelationResult(result);
+                    document.getElementById('download-correlation').disabled = false;
+                } catch (error) {
+                    showError('Ошибка при расчете корреляции: ' + error.message);
+                }
+            });
+            
+            // Обработчик кнопки скачивания
+            document.getElementById('download-correlation').addEventListener('click', async function() {
+                const fileId = document.getElementById('correlation-file-select').value;
+                const leftColumns = Array.from(document.getElementById('left-columns').selectedOptions)
+                    .map(option => option.value);
+                const rightColumns = Array.from(document.getElementById('right-columns').selectedOptions)
+                    .map(option => option.value);
+                const method = document.getElementById('correlation-method').value;
+                const roundValue = document.getElementById('round-value').value;
+                const dropna = document.getElementById('dropna').checked;
+                
+                try {
+                    await downloadCorrelationResult({
+                        fileId,
+                        leftColumns,
+                        rightColumns,
+                        method: parseInt(method),
+                        roundValue: parseInt(roundValue),
+                        dropna
+                    });
+                } catch (error) {
+                    showError('Ошибка при скачивании результатов: ' + error.message);
+                }
+            });
+            
+            // Функция для расчета корреляции
+            async function calculateCorrelation(params) {
+                const authToken = '{{ request.session.auth_token }}';
+                
+                // Сначала загружаем файл
+                await fetch(`${serviceUrl}/data/load/${params.fileId}?sep=,`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                // Затем выполняем расчет корреляции
+                const response = await fetch(`${serviceUrl}/statistic/correlation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        left_columns: params.leftColumns,
+                        right_columns: params.rightColumns,
+                        method: params.method,
+                        round_value: params.roundValue,
+                        dropna: params.dropna
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Ошибка при расчете корреляции');
+                }
+                
+                return await response.json();
+            }
+            
+            // Функция для скачивания результатов
+            async function downloadCorrelationResult(params) {
+                const authToken = '{{ request.session.auth_token }}';
+                
+                // Сначала загружаем файл
+                await fetch(`${serviceUrl}/data/load/${params.fileId}?sep=,`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                // Затем запрашиваем скачивание
+                const response = await fetch(`${serviceUrl}/statistic/correlation/fast`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        left_columns: params.leftColumns,
+                        right_columns: params.rightColumns,
+                        method: params.method,
+                        round_value: params.roundValue,
+                        dropna: params.dropna,
+                        save_format: 'XLSX'
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Ошибка при скачивании результатов');
+                }
+                
+                // Создаем ссылку для скачивания
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `correlation_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            
+            function displayCorrelationResult(result) {
+                const container = document.getElementById('correlationResult');
+                
+                if (!result || Object.keys(result).length === 0) {
+                    container.innerHTML = '<p>Нет данных для отображения</p>';
+                    return;
+                }
+                
+                // Получаем количество пар колонок
+                const pairsCount = Object.keys(result['Pair of columns']).length;
+                
+                // Создаем массив строк для таблицы
+                const headers = ['Pair of columns', 'Valid N', 'Spearman R', 'p-value'];
+                const rows = [];
+                
+                for (let i = 0; i < pairsCount; i++) {
+                    rows.push([
+                        result['Pair of columns'][i],
+                        result['Valid N'][i],
+                        result['Spearman R'][i],
+                        result['p-value'][i]
+                    ]);
+                }
+                
+                // Создаем таблицу
+                let html = '<div class="table-responsive"><table class="table table-bordered"><thead><tr>';
+                
+                // Заголовки
+                headers.forEach(header => {
+                    html += `<th>${header}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+                
+                // Строки данных
+                rows.forEach(row => {
+                    html += '<tr>';
+                    row.forEach(cell => {
+                        html += `<td>${cell}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            }
+            
+            // Кластерный анализ
+            // Обработчик изменения выбранного файла
+            document.getElementById('clustering-file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                
+                try {
+                    // Загружаем файл в Redis
+                    await loadFileAndUpdateColumns(fileId);
+                    
+                    // Получаем список колонок
+                    const columns = await getFileColumns(fileId);
+                    
+                    // Обновляем select для выбора колонок
+                    const columnsSelect = document.getElementById('clustering-columns');
+                    columnsSelect.innerHTML = '';
+                    columns.forEach(column => {
+                        const option = document.createElement('option');
+                        option.value = column;
+                        option.textContent = column;
+                        columnsSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    showError('Ошибка загрузки файла: ' + error.message);
+                }
+            });
+
+            // Обработчик отправки формы кластеризации
+            document.getElementById('clusteringForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fileId = document.getElementById('clustering-file-select').value;
+                const columns = Array.from(document.getElementById('clustering-columns').selectedOptions)
+                    .map(option => option.value);
+                const method = document.getElementById('clustering-method').value;
+                const nClusters = document.getElementById('clustering-n-clusters').value;
+                const updateDf = document.getElementById('clustering-update-df').checked;
+                
+                if (!fileId || columns.length === 0) {
+                    showError('Пожалуйста, выберите файл и хотя бы одну колонку');
+                    return;
+                }
+                
+                try {
+                    // Показываем индикатор загрузки
+                    const resultContainer = document.getElementById('clusteringResult');
+                    resultContainer.innerHTML = '<p>Выполняется кластеризация...</p>';
+                    
+                    // Подготавливаем параметры запроса
+                    const params = {
+                        n_clusters: parseInt(nClusters),
+                        columns: columns,
+                        update_df: updateDf 
+                    };
+                    
+                    // Всегда используем endpoint для получения JSON
+                    const endpoint = '/statistic/clustering';
+                    
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            method: method,
+                            ...params
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Ошибка при выполнении кластеризации');
+                    }
+                    
+                    // Получаем JSON с результатами
+                    const result = await response.json();
+                    displayClusteringResults(result, columns);
+                    
+                    // Активируем кнопку скачивания
+                    document.getElementById('clustering-download').disabled = false;
+                    
+                    // Сохраняем параметры кластеризации для последующего скачивания
+                    document.getElementById('clustering-download').dataset.clusteringParams = JSON.stringify({
+                        method: method,
+                        n_clusters: nClusters,
+                        columns: columns
+                    });
+                    
+                } catch (error) {
+                    showError(error.message);
+                }
+            });
+
+            // Обработчик кнопки скачивания
+            document.getElementById('clustering-download').addEventListener('click', async function() {
+                const fileId = document.getElementById('clustering-file-select').value;
+                const authToken = '{{ request.session.auth_token }}';
+                const clusteringParams = JSON.parse(this.dataset.clusteringParams || '{}');
+                
+                if (!clusteringParams.method) {
+                    showError('Сначала выполните кластеризацию');
+                    return;
+                }
+                
+                try {
+                    const params = {
+                        n_clusters: parseInt(clusteringParams.n_clusters),
+                        columns: clusteringParams.columns,
+                        update_df: false
+                    };
+                    
+                    const response = await fetch(`${serviceUrl}/statistic/clustering/fast`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            method: clusteringParams.method,
+                            ...params
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка при скачивании файла');
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `clusters_${fileId}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    showError(error.message);
+                }
+            });
+
+            function displayClusteringResults(result, columns) {
+                const resultContainer = document.getElementById('clusteringResult');
+                resultContainer.innerHTML = '';
+                
+                try {
+                    const clusterColumn = Object.keys(result)[0];
+                    const clusterValues = result[clusterColumn];
+                    
+                    if (!Array.isArray(clusterValues)) {
+                        throw new Error('Данные кластеров должны быть массивом');
+                    }
+                    
+                    // Статистика по кластерам
+                    const statsDiv = document.createElement('div');
+                    statsDiv.id = 'clustering-stats';
+                    
+                    const distribution = getClusterDistribution(clusterValues);
+                    statsDiv.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Результаты кластеризации</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Метод:</strong> ${document.getElementById('clustering-method').value}</p>
+                                        <p><strong>Кластеров:</strong> ${distribution.length}</p>
+                                        <p><strong>Колонки:</strong> ${columns.join(', ')}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Распределение:</h5>
+                                        <ul class="list-group">
+                                            ${distribution.map(d => `
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span class="badge" style="background-color:${getClusterColor(d.cluster)}">
+                                                        Кластер ${d.cluster}
+                                                    </span>
+                                                    <span class="badge bg-primary rounded-pill">
+                                                        ${d.count} (${d.percentage}%)
+                                                    </span>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultContainer.appendChild(statsDiv);
+                    
+                    // Визуализация (если выбрано 2+ колонки)
+                    if (columns.length >= 2) {
+                        const plotDiv = document.createElement('div');
+                        plotDiv.id = 'clustering-plot';
+                        plotDiv.style.height = '500px';
+                        plotDiv.style.marginTop = '20px';
+                        resultContainer.appendChild(plotDiv);
+                        
+                        loadDataForVisualization(columns, clusterColumn, clusterValues);
+                    }
+                    
+                } catch (error) {
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4>Ошибка</h4>
+                            <p>${error.message}</p>
+                            <button class="btn btn-sm btn-secondary" onclick="console.dir(${JSON.stringify(result)})">
+                                Показать данные в консоли
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Функция для расчета распределения по кластерам
+            function getClusterDistribution(clusterValues) {
+                const counts = {};
+                clusterValues.forEach(cluster => {
+                    counts[cluster] = (counts[cluster] || 0) + 1;
+                });
+                
+                const total = clusterValues.length;
+                return Object.entries(counts)
+                    .map(([cluster, count]) => ({
+                        cluster,
+                        count,
+                        percentage: ((count / total) * 100).toFixed(1)
+                    }))
+                    .sort((a, b) => a.cluster - b.cluster);
+            }
+
+            async function loadDataForVisualization(columns, clusterColumn, clusterValues) {
+                try {
+                    // 1. Получаем данные
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}/data/dataframe`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка загрузки данных');
+                    
+                    const columnData = await response.json();
+
+                    // Логирование для отладки
+                    console.log('Данные колонок:', columnData);
+                    console.log('Значения кластеров:', clusterValues);
+                    
+                    // 2. Подготовка данных
+                    const xCol = columns[0];
+                    const yCol = columns[1];
+                    
+                    // 3. Создаем структуру для кластеров
+                    const clusters = {};
+                    [...new Set(clusterValues)].forEach(cluster => {
+                        clusters[cluster] = { x: [], y: [] };
+                    });
+                    
+                    // 4. Заполняем данные для каждого кластера
+                    Object.keys(columnData[xCol]).forEach(idx => {
+                        const cluster = clusterValues[idx]; // Получаем кластер по индексу
+                        const xVal = parseFloat(columnData[xCol][idx]);
+                        const yVal = parseFloat(columnData[yCol][idx]);
+                        
+                        if (!isNaN(xVal) && clusters[cluster]) clusters[cluster].x.push(xVal);
+                        if (!isNaN(yVal) && clusters[cluster]) clusters[cluster].y.push(yVal);
+                    });
+                    
+                    // 5. Создаем traces для Plotly
+                    const traces = Object.entries(clusters)
+                        .filter(([_, data]) => data.x.length > 0 && data.y.length > 0)
+                        .map(([cluster, data]) => ({
+                            x: data.x,
+                            y: data.y,
+                            mode: 'markers',
+                            type: 'scatter',
+                            name: `Кластер ${cluster}`,
+                            marker: {
+                                size: 10,
+                                opacity: 0.8,
+                                color: getClusterColor(parseInt(cluster)),
+                                line: { width: 1, color: '#fff' }
+                            }
+                        }));
+                    
+                    // 6. Создаем график
+                    const plotDiv = document.getElementById('clustering-plot');
+                    plotDiv.innerHTML = '';
+                    
+                    if (traces.length === 0) {
+                        throw new Error('Нет данных для отображения. Проверьте выбранные колонки.');
+                    }
+                    
+                    Plotly.newPlot(plotDiv, traces, {
+                        title: `Кластерный анализ (${traces.length} кластеров)`,
+                        xaxis: { title: xCol },
+                        yaxis: { title: yCol },
+                        margin: { t: 50, l: 50, r: 30, b: 50 },
+                        legend: { orientation: 'h', y: -0.2 }
+                    });
+                    
+                    // 7. Адаптация размера при изменении окна
+                    window.addEventListener('resize', () => Plotly.Plots.resize(plotDiv));
+                    
+                } catch (error) {
+                    console.error('Ошибка визуализации:', error);
+                    document.getElementById('clustering-plot').innerHTML = `
+                        <div class="alert alert-danger">
+                            <p>Ошибка построения графика: ${error.message}</p>
+                            <p>Проверьте: 
+                            <li>Выбор числовых колонок</li>
+                            <li>Корректность данных</li>
+                            </p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Функция для получения цвета кластера
+            function getClusterColor(cluster) {
+                // Яркие цвета для лучшего различия кластеров
+                const colors = [
+                    '#FF0000', // Ярко-красный
+                    '#00FF00', // Ярко-зеленый
+                    '#0000FF', // Ярко-синий
+                    '#FFFF00', // Желтый
+                    '#FF00FF', // Пурпурный
+                    '#00FFFF', // Голубой
+                    '#FF8000', // Оранжевый
+                    '#8000FF', // Фиолетовый
+                    '#0080FF', // Лазурный
+                    '#FF0080', // Розовый
+                    '#80FF00', // Лаймовый
+                    '#00FF80'  // Весенне-зеленый
+                ];
+                return colors[cluster % colors.length];
+            }
+            
+            // Анализ отношений шансов
+            // Обработчик изменения файла
+            document.getElementById('or-file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                
+                try {
+                    // Загружаем файл и получаем колонки
+                    await loadFile(fileId);
+                    const columns = await getFileColumns(fileId);
+                    
+                    // Обновляем селекторы колонок
+                    updateSelectOptions('or-target-column', columns);
+                    updateSelectOptions('or-split-column', ['', ...columns]);
+                    updateSelectOptions('or-columns', columns);
+                    
+                    // Разблокируем элементы
+                    document.getElementById('or-target-column').disabled = false;
+                    document.getElementById('or-split-column').disabled = false;
+                    document.getElementById('or-columns').disabled = false;
+                } catch (error) {
+                    showError('Ошибка загрузки колонок: ' + error.message);
+                }
+            });
+            
+            // Кнопка расчета
+            document.getElementById('or-calculate-btn').addEventListener('click', calculateOR);
+            
+            // Кнопка скачивания
+            document.getElementById('or-download-btn').addEventListener('click', downloadORResults);
+            
+            // Функция обновления опций в select
+            function updateSelectOptions(selectId, options) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '';
+                
+                options.forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option;
+                    optElement.textContent = option;
+                    select.appendChild(optElement);
+                });
+            }
+            
+            // Функция загрузки файла
+            async function loadFile(fileId) {
+                const authToken = '{{ request.session.auth_token }}';
+                const response = await fetch(`${serviceUrl}/data/load/${fileId}?sep=,`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Ошибка загрузки файла');
+            }
+            
+            // Функция расчета OR
+            async function calculateOR() {
+                const fileId = document.getElementById('or-file-select').value;
+                const targetColumn = document.getElementById('or-target-column').value;
+                const splitColumn = document.getElementById('or-split-column').value || null;
+                
+                if (!fileId || !targetColumn) {
+                    showError('Пожалуйста, выберите файл и целевую колонку');
+                    return;
+                }
+                
+                // Получаем выбранные колонки
+                const columnsSelect = document.getElementById('or-columns');
+                const selectedColumns = Array.from(columnsSelect.selectedOptions).map(opt => opt.value);
+                const columns = selectedColumns.length > 0 ? selectedColumns : null;
+                
+                try {
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}/statistic/or`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({
+                            file_id: parseInt(fileId),
+                            target_column: targetColumn,
+                            split_column: splitColumn,
+                            columns: columns
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Ошибка расчета OR');
+                    }
+                    
+                    const result = await response.json();
+                    displayORResults(result);
+                    
+                    // Сохраняем результат для скачивания и активируем кнопку
+                    window.lastORResult = result;
+                    document.getElementById('or-download-btn').disabled = false;
+                } catch (error) {
+                    showError('Ошибка при расчете OR: ' + error.message);
+                }
+            }
+            
+            // Функция отображения результатов
+            function displayORResults(result) {
+                const resultContainer = document.getElementById('orResult');
+                resultContainer.innerHTML = '';
+                
+                if (!result || Object.keys(result).length === 0) {
+                    resultContainer.innerHTML = '<p>Нет данных для отображения</p>';
+                    return;
+                }
+                
+                // Создаем таблицу
+                const table = document.createElement('table');
+                
+                // Заголовок таблицы
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                
+                Object.keys(result).forEach(key => {
+                    const th = document.createElement('th');
+                    th.textContent = key;
+                    headerRow.appendChild(th);
+                });
+                
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                
+                // Тело таблицы
+                const tbody = document.createElement('tbody');
+                
+                // Определяем количество строк (по первой колонке)
+                const firstColumn = Object.keys(result)[0];
+                const rowCount = result[firstColumn].length;
+                
+                // Заполняем строки
+                for (let i = 0; i < rowCount; i++) {
+                    const row = document.createElement('tr');
+                    
+                    Object.keys(result).forEach(key => {
+                        const td = document.createElement('td');
+                        td.textContent = result[key][i] || 'N/A';
+                        row.appendChild(td);
+                    });
+                    
+                    tbody.appendChild(row);
+                }
+                
+                table.appendChild(tbody);
+                resultContainer.appendChild(table);
+            }
+            
+            // Функция скачивания результатов
+            async function downloadORResults() {
+                if (!window.lastORResult) {
+                    showError('Нет результатов для скачивания');
+                    return;
+                }
+                
+                const fileId = document.getElementById('or-file-select').value;
+                const targetColumn = document.getElementById('or-target-column').value;
+                const splitColumn = document.getElementById('or-split-column').value || null;
+                
+                try {
+                    const authToken = '{{ request.session.auth_token }}';
+                    const response = await fetch(`${serviceUrl}/statistic/or/fast`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({
+                            file_id: parseInt(fileId),
+                            target_column: targetColumn,
+                            split_column: splitColumn,
+                            save_format: 'XLSX'
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Ошибка при создании файла');
+                    }
+                    
+                    // Создаем blob и скачиваем файл
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `OR_analysis_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    showError('Ошибка при скачивании результатов: ' + error.message);
+                }
+            }
+        });
+    </script>
+
+    <style>
+        .statistics-container {
+            margin: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .statistics-tabs {
+            display: flex;
+            margin-bottom: 0;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-bottom: 5px;
+        }
+        
+        .tab-button:hover {
+            background: #ddd;
+        }
+        
+        .tab-button.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .tab-content {
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            padding: 20px;
+            background: white;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        .statistics-form {
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+        }
+        
+        .form-control:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .form-check {
+            margin-bottom: 15px;
+        }
+        
+        .form-check-input {
+            margin-right: 10px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3e8e41;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            min-height: 50px;
+            overflow-x: auto;
+        }
+        
+        .error {
+            color: #d32f2f;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 5px;
+            border: none;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .modal h3 {
+            color: #d32f2f;
+            margin-top: 0;
+        }
+        
+        .modal .close {
+            color: #aaa;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal .close:hover {
+            color: #333;
+        }
+        
+        .modal-close {
+            margin-top: 20px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .statistics-tabs {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                width: 100%;
+                text-align: left;
+                border-radius: 0;
+                margin-right: 0;
+                margin-bottom: 5px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
+        }
+
+        .group-item {
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .input-group .form-control {
+            flex: 1;
+        }
+
+        .input-group .btn {
+            flex: 0 0 auto;
+        }
+
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-text {
+            color: #6c757d;
+            font-size: 0.875em;
+        }
+
+        .table {
+            font-size: 0.9em;
+        }
+
+        .table th {
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+        }
+        /* Добавьте в ваши стили */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #31708f;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+        [title] {
+            position: relative;
+            cursor: help;
+        }
+
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 10px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 5px;
+        }
+        .group-item {
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .group-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .remove-group {
+            transition: all 0.2s ease;
+        }
+
+        .remove-group:hover {
+            transform: scale(1.05);
+        }
+
+        .form-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .group-operation option {
+            font-family: 'Courier New', monospace;
+        }
+
+
+        /* Дополнительные стили для выбросов */
+        #outliers-columns, #outliers-target {
+            height: auto;
+            min-height: 38px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .result-placeholder {
+            color: #6c757d;
+            font-style: italic;
+            padding: 15px;
+            text-align: center;
+        }
+
+        /* Стили для мультиселекта */
+        select[multiple] option:checked {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #clustering-columns {
+            min-height: 100px;
+        }
+
+        .form-check {
+            margin: 15px 0;
+            padding-left: 1.5em;
+        }
+
+        .form-check-label {
+            margin-left: 0.5em;
+        }
+
+        #clustering-plot {
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        #clustering-stats {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        #clustering-stats h4 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+
+        #clustering-stats p {
+            margin: 5px 0;
+        }
+
+        .cluster-distribution {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .cluster-distribution li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cluster-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        #clustering-plot {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background: white;
+            width: 100%;
+        }
+
+        .cluster-badge {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .list-group-item {
+            padding: 10px 15px;
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Разделение выборки по половому признаку
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Укажите обозначения полов для разделения выборки</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="fieldWrapper">
+                {{ form.gender_value.errors }}
+                <label for="{{ form.gender_value.id_for_label }}">Пол {{ forloop.counter }}:</label>
+                {{ form.gender_value }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.user_session_key.errors }}
+                {{ form.user_session_key }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.gender_values.errors }}
+                {{ form.gender_values }}
+            </div>
+        {%  endfor %}
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

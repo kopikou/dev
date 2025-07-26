@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<title> {% block title %}{% endblock %} </title>
+	<link rel="stylesheet" href="{% static 'fdb/css/fdb_style_index.css' %}" /> 
+	<script src="https://cdn.plot.ly/plotly-2.18.2.min.js"></script>
+</head>
+<body>
+	<div class="inner">
+		<span class="header__subheading"> Федеральное государственное бюджетное научное учреждение</span>
+		<a href="https://health-family.ru/ru/" target="blank" class="header__logotype"> <img src={% static 'fdb/img/logo.png' %}></a>
+	</div>
+	<nav id="menu">
+		<ul id="horizontal-multilevel-menu" class="main-navigation inner">
+			{% if request.session.auth_token %}
+			<li>
+				<span class="root__item" style="color: #4CAF50;">
+					{{ request.session.user_email }}
+				</span>
+			</li>
+			<li>
+				<a href="{% url 'fdb:logout' %}" class="root__item">Выйти</a>
+			</li>
+			{% else %}
+			<li>
+				<a href="{% url 'fdb:auth' %}" class="root__item">Авторизация</a>
+			</li>
+			{% endif %}
+			<li>
+				<a href="{% url 'fdb:storage' %}" class="root__item">Загрузка файла</a>
+			</li>
+			<li>
+				<a href="{% url 'fdb:statistics' %}" class="root__item">Описательная статистика</a>
+			</li>
+            <li>
+				<a href="{% url 'fdb:visualization' %}" class="root__item">Визуализация</a>
+			</li>
+            <li>
+				<a href="{% url 'fdb:missing_data' %}" class="root__item">Импутация данных</a>
+			</li>
+			<li>
+				<a href="{% url 'fdb:data' %}" class="root__item">Калькуляторы</a>
+			</li>
+		</ul>
+	</nav>
+	<div class="content__sheet">
+        {% block content %}{% endblock %}
+	</div>
+</body>
+</html>

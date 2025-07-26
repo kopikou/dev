@@ -1,0 +1,12 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Ошибка
+{% endblock %}
+
+{% block content %}
+    <h1>Ошибка</h1>
+    <div>{{ error }}</div>
+    <a href="{{ href }}" class="btn">Вернуться</a>
+
+{% endblock %}

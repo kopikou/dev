@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Определение контроля
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите значение, обозначающее контрольную группу</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.control_selection_value.errors }}
+            <label for="{{ form.control_selection_value.id_for_label }}">Контроль:</label>
+            {{ form.control_selection_value }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.selection_col_values.errors }}
+            {{ form.selection_col_values }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

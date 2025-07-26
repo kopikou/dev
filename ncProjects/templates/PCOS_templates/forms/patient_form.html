@@ -1,0 +1,141 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" href="{% static 'css/pcos_style_form.css' %}" />
+	<script type="text/javascript" charset="utf8" src="{% static 'datatables/jquery-3.5.1.js' %}"></script>
+	<title>Пациент</title>
+</head>	
+<body>
+
+<div class="draw_field">
+<table class="table_" style="display:table;">
+		<tr class="sheet_name" > 
+			<td colspan="2"> 
+			{%if new is 1 %}				
+				<img src={% static 'img/pencil.png' %}> Editing new record 
+			{% else %}
+				<img src={% static 'img/pencil.png' %}> Editing existing record ID {{form.instance.id}} 
+			{%  endif  %}
+		</td>
+		</tr>
+	<tr class="table_name" > 
+		<td colspan="2"> <a> ПАЦИЕНТ </a></td>
+	</tr>
+	<form  method="POST" >
+			{%csrf_token%}
+		<tr class="table_string">
+          <td class="table_string_left"> <a> Номер карты </a> </td>
+          <td class="table_string_right"> <label> {{form.card_number}} </label> </td>
+       </tr>
+        <tr class="table_string">
+          <td class="table_string_left"> <a> Штрих-код </a> </td>
+          <td class="table_string_right"> <label> {{form.barcode}} </label> </td>
+       </tr>
+       <tr class="table_name" > 
+		<td colspan="2"> <a> ПАЦИЕНТ </a></td>
+	</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> ФИО пациента</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.patient_name}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Дата рождения</a> 
+				</td>	
+				<td class="table_string_right"><a >{{form.day_of_birth}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Ethnicity</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.ethnicity_key}}</a> 
+				</td>	
+			</tr>
+
+			<tr class="table_string"> 
+        <td class="table_string_left"><a>Пол</a> 
+        </td>   
+        <td class="table_string_right"><a>{{form.sex}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Место рождения</a> 
+        </td>   
+        <td class="table_string_right"><a>{{form.place_of_birth}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Город/село</a> 
+        </td>   
+        <td class="table_string_right"><a>{{form.urban_rural}}</a> 
+        </td>   
+     </tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>	
+				<td class="table_string_right"><input  type="submit" value="Сохранить" style="width:115px; height: 23px">
+				</td>
+			</tr>
+			{% if new is 1 %}
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>		
+				<td class="table_string_right">	
+				<a href="{% url 'PCOS_app:patients_list' %}" ><button type="button" style="width:115px; height: 23px">Закрыть</button></a>
+				</td>	
+			</tr>
+				{% else %}
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>		
+				<td class="table_string_right">	
+					 <a href="{% url 'PCOS_app:view_full' form.instance.id %}" ><button type="button" style="width:115px; height: 23px">Закрыть</button></a>
+					
+				</td>	
+			</tr>
+
+				{%  endif  %}
+
+
+	</form>
+
+
+
+
+</table>
+
+
+
+</div>
+<script>
+
+
+var isSubmitting = false;
+$(document).ready(function () {
+
+	if ({{new}}) {
+    function disableBack() {window.history.forward()}
+    window.onload = disableBack();
+    window.onpageshow = function(evt) {  if (evt.persisted) {disableBack()} }
+}
+
+
+    $('form').submit(function(){
+        isSubmitting = true
+    })
+    $('form').data('initial-state', $('form').serialize());
+    $(window).on('beforeunload', function() {
+    	alert('before')
+        if (!isSubmitting && $('form').serialize() != $('form').data('initial-state')){
+            return 'На форме есть несохраненные изменения.'
+        }
+    });
+})
+
+</script>
+ 
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<title> {% block title %}{% endblock %} </title>
+	<link rel="stylesheet" href="{% static 'css/osi_style_index.css' %}" />
+</head>
+<body>
+	<div class="inner">
+		<span class="header__subheading"> Федеральное государственное бюджетное научное учреждение</span>
+		<a href="https://health-family.ru/ru/" target="blank" class="header__logotype"> <img src={% static 'img/logo.png' %}></a>
+	</div>
+	<nav id="menu">
+		<ul id="horizontal-multilevel-menu" class="main-navigation inner">
+            <li>
+				<a href="{% url 'instruction' %}" class="root__item">Инструкция</a>
+			</li>
+			<li>
+				<a href="{% url 'fields_mode' %}" class="root__item">Ввод данных</a>
+			</li>
+			<li>
+				<a href="{% url 'file_data' %}" class="root__item">Ввод данных из файла</a>
+			</li>
+		</ul>
+	</nav>
+	<div class="content__sheet">
+        {% block content %}{% endblock %}
+	</div>
+</body>
+</html>

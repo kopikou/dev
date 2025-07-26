@@ -1,0 +1,77 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Пациент
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите информацию о пациенте</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div>
+        <h4>Общая информация</h4>
+        {{ form.non_field_errors }}
+        <div class="fieldWrapper">
+            {{ form.patient_id.errors }}
+            <label for="{{ form.patient_id.id_for_label }}">Уникальный идентификатор:</label><br/>
+            {{ form.patient_id }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.age.errors }}
+            <label for="{{ form.age.id_for_label }}">Возраст:</label><br/>
+            {{ form.age }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.ethnicity.errors }}
+            <label for="{{ form.ethnicity.id_for_label }}">Раса:</label><br/>
+            {{ form.ethnicity }}
+        </div>
+        <h4>Параметры</h4>
+        <div class="fieldWrapper">
+            {{ form.dk.errors }}
+            <label for="{{ form.dk.id_for_label }}">Диеновые конъюгаты:</label><br/>
+            {{ form.dk }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.kd_st.errors }}
+            <label for="{{ form.kd_st.id_for_label }}">Кетодиены и сопряженные триены:</label><br/>
+            {{ form.kd_st }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.mda.errors }}
+            <label for="{{ form.mda.id_for_label }}">Малоновый диальдегид:</label><br/>
+            {{ form.mda }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.cod.errors }}
+            <label for="{{ form.cod.id_for_label }}">Супероксиддисмутаза:</label><br/>
+            {{ form.cod }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.gsh.errors }}
+            <label for="{{ form.gsh.id_for_label }}">Глутатион восстановленный:</label><br/>
+            {{ form.gsh }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.e.errors }}
+            <label for="{{ form.e.id_for_label }}">α токоферол vitE:</label><br/>
+            {{ form.e }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.a.errors }}
+            <label for="{{ form.a.id_for_label }}">Ретинол vitA:</label><br/>
+            {{ form.a }}
+        </div>
+        </div>
+        <div class="fieldWrapper">
+                {{ form.user_session_key.errors }}
+                {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+                {{ form.ethnicity_values.errors }}
+                {{ form.ethnicity_values }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

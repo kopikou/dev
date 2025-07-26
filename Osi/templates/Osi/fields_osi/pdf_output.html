@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Результат PDF</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.5cm 1.5cm 3.5cm 1.5cm;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        i {
+            text-align: center;
+        }
+        div {
+            margin: 0 10%;
+        }
+        p {
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <div><i>
+        ФГБНУ "Научный центр проблем здоровья семьи и репродукции человека", Тимирязева, 16, тел. (8-3952)20-45-92<br>
+        <p>Клинико-диагностическая лаборатория</p></i>
+        {{ patient_html_table | safe }}
+        <i>Дата:<br><br>
+        Подпись: __________________________________________________________</i>
+    </div>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{% static 'Pcos/css/pcos_style_db.css' %}" /> 
+    <script type="text/javascript" charset="utf8" src="{% static 'Pcos/datatables/jquery-3.5.1.js' %}"></script>
+    <script type="text/javascript" charset="utf8" src="{% static 'Pcos/js/PCOS_alg.js' %}"></script>
+    <script type="text/javascript" charset="utf8" src="{% static 'Pcos/js/papaparse.js' %}"></script>
+    <title>Обработка файла</title>
+</head>
+<body>     
+       <p> Обработка файла </p>   
+       <input type="file" id="csvFile" accept=".csv" />
+       <p> <textarea id="sfield" style="font-family:arial;width:100%;height:40%"></textarea></p>
+       <p> <button type="button" id="sf" style="width:115px; height: 23px">Сохранить</button></p>
+      
+<script>  
+
+
+
+function FileWork(lines) 
+{   
+    for (var i = 0; i < lines.data.length; i++) 
+    {   
+        result=lines.data[i]
+       
+        ethnicity_                 =result['ethnicity']
+        periods_                   =result['periods']
+        type_menstrual_disorders_1_=result['type_menstrual_disorders___1']
+        if (type_menstrual_disorders_1_=='1') {(type_menstrual_disorders_1_='2')}
+        type_menstrual_disorders_2_=result['type_menstrual_disorders___2']
+        if (type_menstrual_disorders_2_=='1') {(type_menstrual_disorders_1_='3')}
+        type_menstrual_disorders_3_=result['type_menstrual_disorders___3']
+        if (type_menstrual_disorders_3_=='1') {(type_menstrual_disorders_3_=true)}   
+        type_menstrual_disorders_4_=result['type_menstrual_disorders___4']
+        if (type_menstrual_disorders_4_=='1') {(type_menstrual_disorders_4_=true)}   
+        
+        if (isNaN(result['min_menstrual'])) {min_menstrual_ =null} 
+        else {min_menstrual_       =Number(result['min_menstrual'])}
+
+        if (isNaN(result['max_menstrual'])) {max_menstrual_=null} else 
+        {max_menstrual_            =Number(result['max_menstrual'])}           
+        
+        if (isNaN(result['sum_physician'])) {sum_physician_=null} else 
+        {sum_physician_            =Number(result['sum_physician'])}   
+
+        day_of_begin_=''
+
+        if (isNaN(result['right_volume_total'])) {right_volume_total_=null} else 
+        {right_volume_total_       =Number(result['right_volume_total'])}              
+        
+
+        if (isNaN(result['right_follicle_total'])) {right_follicle_total_=null} else 
+        {right_follicle_total_     =Number(result['right_follicle_total'])}    
+        
+
+        if (isNaN(result['diameter_right_total'])) {diameter_right_total_=null} else 
+        {diameter_right_total_     =Number(result['diameter_right_total'])}    
+        
+
+        if (isNaN(result['left_volume_total'])) {left_volume_total_=null} else 
+        {left_volume_total_        =Number(result['left_volume_total'])}   
+        
+
+        if (isNaN(result['left_follicle_total'])) {left_follicle_total_=null} else 
+        {left_follicle_total_      =Number(result['left_follicle_total'])} 
+        
+
+        if (isNaN(result['diameter_left_total'])) {diameter_left_total_=null} else 
+        {diameter_left_total_      =Number(result['diameter_left_total'])} 
+        
+        
+        if (isNaN(result['value_testosteron'])) {value_testosteron_=null} else 
+        {value_testosteron_        =Number(result['value_testosteron'])}           
+        
+
+        if (isNaN(result['value_shbg'])) {value_shbg_=null} else 
+        {value_shbg_               =Number(result['value_shbg'])}  
+        
+
+        if (isNaN(result['value_dheas'])) {value_dheas_=null} else 
+        {value_dheas_              =Number(result['value_dheas'])} 
+        
+
+        if (isNaN(result['value_tsh'])) {value_tsh_=null} else 
+        {value_tsh_                =Number(result['value_tsh'])}
+        
+        if (isNaN(result['day_mens_prl'])) {day_mens_prl_=NaN} else 
+        {day_mens_prl_             =Number(result['day_mens_prl'])}    
+        
+
+        if (isNaN(result['value_17hp'])) {value_17hp_   =null} else 
+        {value_17hp_               =Number(result['value_17hp'])}  
+        
+
+        if (isNaN(result['value_prl'])) {value_prl_=NaN} else 
+        {value_prl_                =Number(result['value_prl'])}   
+        
+        
+        value_testosteron_max_          =null
+        value_IFA_max_                  =null
+        value_dheas_max_                =355
+        value_tsh_min_                  =0.1
+        value_tsh_max_                  =4  
+        value_17hp_max_1_               =6.9
+        value_prl_max_1_                =726
+        value_prl_max_2_                =944
+        
+
+        age_visit1_             =result['age_visit1']
+        inform_consent_         =result['inform_consent']
+        comply_all_study_       =result['comply_all_study']
+        female_age_             =result['female_age']
+        current_preg_lact_      =result['current_preg_lact'] 
+        history_hysterectomy_   =result['history_hysterectomy']
+        risk_no_compliance_     =result['risk_no_compliance']
+        unwillingness_          =result['unwillingness']
+        medicince_listed_now___10_   =result['medicince_listed_now___10']
+        medicince_listed_3month___10_=result['medicince_listed_3month___10']
+        pnya_                   ='0'
+        diagnoses=CheckPCOS(ethnicity_,
+                            periods_,
+                            type_menstrual_disorders_1_,
+                            type_menstrual_disorders_3_,
+                            type_menstrual_disorders_4_,
+                            min_menstrual_,
+                            max_menstrual_,
+                            sum_physician_,
+                            day_of_begin_,
+                            right_volume_total_,
+                            right_follicle_total_,
+                            diameter_right_total_,
+                            left_volume_total_,
+                            left_follicle_total_,
+                            diameter_left_total_,
+                            value_testosteron_,
+                            value_shbg_,
+                            value_dheas_,
+                            value_tsh_,
+                            day_mens_prl_,
+                            value_17hp_,
+                            value_prl_,
+                            value_testosteron_max_,
+                            value_IFA_max_,
+                            value_dheas_max_,
+                            value_tsh_min_,
+                            value_tsh_max_,
+                            value_17hp_max_1_,
+                            value_prl_max_1_,
+                            value_prl_max_2_,
+                            age_visit1_,
+                            inform_consent_,
+                            comply_all_study_,
+                            female_age_,
+                            current_preg_lact_,
+                            history_hysterectomy_,
+                            risk_no_compliance_,
+                            unwillingness_,
+                            medicince_listed_now___10_,
+                            medicince_listed_3month___10_,
+                            pnya_
+                            );
+        F_PCOS          =diagnoses[0]
+        ex              =diagnoses[1]
+        grey            =diagnoses[2]
+        F_phenotype     =diagnoses[3]
+        PCOS_text       =diagnoses[4]
+        lines.data[i]['F_PCOS']        =   F_PCOS
+        lines.data[i]['ex']            =   ex
+        lines.data[i]['grey']          =   grey
+        lines.data[i]['F_phenotype']   =   F_phenotype
+        lines.data[i]['PCOS_text']     =   PCOS_text
+        
+
+
+        
+    } //цикл   
+    var csv = Papa.unparse(lines.data);
+    alert(csv)
+    var element=document.getElementById('sfield')
+    element.innerHTML = csv;
+
+}
+
+function handleFileSelect(evt) {
+  var file = evt.target.files[0];
+  Papa.parse(file, {
+    header: true,
+    dynamicTyping: true,
+    complete: function(results) {
+      FileWork(results);
+    }
+  });
+}
+$(document).ready(function() {
+  $("#csvFile").change(handleFileSelect);
+});
+
+document.getElementById('sf').addEventListener('click', () => {
+    textToFile (document.getElementById('sfield').value, 'file.csv')
+})
+function textToFile (text, name) {
+    const b = new Blob(["\ufeff",text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(b);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name || 'text.csv';
+
+    a.type = 'text/plain';
+    a.charset = 'utf-8';
+    a.addEventListener('click', () => {
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    })
+    a.click()
+}
+
+
+
+</script>
+</body>
+
+</html>

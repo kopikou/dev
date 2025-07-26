@@ -1,0 +1,250 @@
+<!{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" href="{% static 'Pcos/css/pcos_style_form.css' %}" /> 
+	<script type="text/javascript" charset="utf8" src="{% static 'Pcos/datatables/jquery-3.5.1.js' %}"></script>
+	<title>Ультразвуковое исследование</title>
+</head>	
+<body onload="checkDisabled()">
+
+<div class="draw_field">
+<table class="table_" style="display:table;">
+	<tr class="sheet_name" > 
+		<td colspan="2"> 
+			{%if new is 1 %}				
+			<img src={% static 'Pcos/img/pencil.png' %}> Ввод данных нового УЗИ 
+			
+			{% else %}
+			<img src={% static 'Pcos/img/pencil.png' %}> Редактирование данных УЗИ ID {{form.instance.id}} 
+			{%  endif  %}
+		</td>
+	</tr>
+	<tr class="table_string">
+		<td class="table_string_left"> <a> Код УЗИ ID </a> </td>
+		<td class="table_string_right"> <label> {{form.instance.id}} </label> </td>
+	</tr>
+	<tr class="table_name" > 
+		<td colspan="2"> <a> УЛЬТРАЗВУКОВОЕ ИССЛЕДОВАНИЕ </a></td>
+	</tr>
+	<form  method="post" >
+			{%csrf_token%}
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> ФИО пациента</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.patient_key}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> Визит</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.visit_key}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>ФИО доктора</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.doctor_key}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a> Дата приема</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.date}}</a> 
+				</td>	
+			</tr>
+				<tr class="table_name" > 
+				<td colspan="2"> <a>Правый яичник</a> </td>
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Правый яичник</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Change('right')"> {{form.right_ovary_key}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Передний размер правого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Calculate_Volume('right')"> {{form.right_ovary_front}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Задний размер правого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Calculate_Volume('right')"> {{form.right_ovary_posterior}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Боковой размер правого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Calculate_Volume('right')"> {{form.right_ovary_side}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Объем правого ичника</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.right_volume_total}}</a> 
+				</td>	
+			</tr>
+		
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Количество фолликулов в правом яичнике</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.right_follicle_total}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Диаметр наибольшей кисты/фолликула правого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.diameter_right_total}}</a> 
+				</td>	
+			</tr>
+				</tr>
+				<tr class="table_name" > 
+				<td colspan="2"> <a>Левый яичник</a> </td>
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Левый яичник</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Change('left')"> {{form.left_ovary_key}}</a> 
+				</td>	
+			</tr>
+		
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Передний размер левого яичника</a> 
+				</td>	
+				<td class="table_string_right" ><a onchange="Calculate_Volume('left')"> {{form.left_ovary_front}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Задний размер левого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Calculate_Volume('left')"> {{form.left_ovary_posterior}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Боковой размер левого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a onchange="Calculate_Volume('left')"> {{form.left_ovary_side}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Объем левого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a> {{form.left_volume_total}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Количество фолликулов в левом яичнике</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.left_follicle_total}}</a> 
+				</td>	
+			</tr>
+			<tr class="table_string"> 
+				<td class="table_string_left"><a>Диаметр наибольшей кисты/фолликула левого яичника</a> 
+				</td>	
+				<td class="table_string_right"><a>{{form.diameter_left_total}}</a> 
+				</td>	
+			</tr>
+		
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>	
+				<td class="table_string_right"><input  type="submit" value="Сохранить" style="width:115px; height: 23px">
+				</td>
+			</tr>
+
+			<tr class="table_string"> 
+				<td class="table_string_left"><a></a> 
+				</td>		
+				<td class="table_string_right">	
+						<a href="{% url 'Pcos:view_full' patient_key %}" ><button type="button" style="width:115px; height: 23px">Закрыть</button></a>
+
+					
+				</td>
+			</tr>
+	</form>
+</table>
+
+</div>
+<script>
+function setDisabled(side){
+if (document.getElementById('id_'+side+'_ovary_key').value!='1'){
+  		
+	    document.getElementById('id_'+side+'_ovary_front').disabled=true
+  		document.getElementById('id_'+side+'_ovary_posterior').disabled=true
+  		document.getElementById('id_'+side+'_ovary_side').disabled=true
+  		document.getElementById('id_'+side+'_volume_total').disabled=true
+  		document.getElementById('id_'+side+'_follicle_total').disabled=true
+  		document.getElementById('id_diameter_'+side+'_total').disabled=true
+  	}
+
+}
+function checkDisabled()
+{setDisabled("left")
+setDisabled("right")
+}
+
+	function Change(side) 
+  {		
+
+  		if (document.getElementById('id_'+side+'_ovary_key').value!='1'){
+  		document.getElementById('id_'+side+'_ovary_front').value="None"
+  		document.getElementById('id_'+side+'_ovary_posterior').value="None"
+  		document.getElementById('id_'+side+'_ovary_side').value="None"
+  		document.getElementById('id_'+side+'_volume_total').value="None"
+  		document.getElementById('id_'+side+'_follicle_total').value="None"
+  		document.getElementById('id_diameter_'+side+'_total').value="None"
+  		
+	    document.getElementById('id_'+side+'_ovary_front').disabled=true
+  		document.getElementById('id_'+side+'_ovary_posterior').disabled=true
+  		document.getElementById('id_'+side+'_ovary_side').disabled=true
+  		document.getElementById('id_'+side+'_volume_total').disabled=true
+  		document.getElementById('id_'+side+'_follicle_total').disabled=true
+  		document.getElementById('id_diameter_'+side+'_total').disabled=true
+  	}
+  		else {
+  		document.getElementById('id_'+side+'_ovary_front').disabled=false
+  		document.getElementById('id_'+side+'_ovary_posterior').disabled=false
+  		document.getElementById('id_'+side+'_ovary_side').disabled=false
+  		document.getElementById('id_'+side+'_volume_total').disabled=false
+  		document.getElementById('id_'+side+'_follicle_total').disabled=false
+  		document.getElementById('id_diameter_'+side+'_total').disabled=false
+  		}
+
+
+  		
+  }
+function Calculate_Volume(side)
+{ 	
+length=document.getElementById('id_'+side+'_ovary_front').value
+depth=document.getElementById('id_'+side+'_ovary_posterior').value
+width=document.getElementById('id_'+side+'_ovary_side').value
+volume=length*depth*width*0.523/1000
+document.getElementById('id_'+side+'_volume_total').value=volume.toFixed(2)
+  }
+
+
+var isSubmitting = false;
+$(document).ready(function () {
+
+
+	if ({{new}}) {
+    function disableBack() { window.history.forward() }
+    window.onload = disableBack();
+    window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
+}
+    $('form').submit(function(){
+        isSubmitting = true
+    })
+    $('form').data('initial-state', $('form').serialize());
+    $(window).on('beforeunload', function() {
+        if (!isSubmitting && $('form').serialize() != $('form').data('initial-state')){
+            return 'На форме есть несохраненные изменения.'
+        }
+    });
+})
+	</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Разделение выборки
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите столбцы, содержащие группирующие факторы</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="fieldWrapper">
+            {{ form.age_col.errors }}
+            <label for="{{ form.age_col.id_for_label }}">Возраст:</label>
+            {{ form.age_col }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.gender_col.errors }}
+            <label for="{{ form.gender_col.id_for_label }}">Пол:</label>
+            {{ form.gender_col }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.ethnicity_col.errors }}
+            <label for="{{ form.ethnicity_col.id_for_label }}">Раса:</label>
+            {{ form.ethnicity_col }}
+        </div>
+        <div class="fieldWrapper">
+                {{ form.user_session_key.errors }}
+                {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+                {{ form.data_columns.errors }}
+                {{ form.data_columns }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

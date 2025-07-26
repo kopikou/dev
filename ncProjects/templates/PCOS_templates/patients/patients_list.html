@@ -1,0 +1,90 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+  
+    <link rel="stylesheet" href="{% static 'css/pcos_style_db.css' %}" /> 
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css"/>
+    <title>ИС регистр СПКЯ</title>
+    <script type="text/javascript" charset="utf8" src="{% static 'datatables/jquery-3.5.1.js' %}"></script>
+    <script type="text/javascript" charset="utf8" src="{% static 'datatables/jquery.dataTables.min.js' %}"></script>
+</head>
+<body>
+         
+        <span>Пользователь: {{request.user}}</span>
+        <span><a href="logout_user">Выйти</a></span>
+                   
+                   
+        <div class="head__table"> Список пациентов </div>
+        <div class="content__table">
+
+           <a href="{% url 'PCOS_app:add_patient' %}"><button  style="width:125px; height: 25px">Добавить запись</button></a>
+            <div class="dropdown">
+                <button class="dropbtn">Отчеты</button>
+                <div class="dropdown-content">
+                    <a href="{% url 'PCOS_app:report_filework' %}"; target="_blank" >Обработка .csv</a>
+                    <a href="{% url 'PCOS_app:report_exportdata' %}"; target="_blank" >Выгрузка данных из БД</a>
+                </div>
+            </div>
+            {% if patients_%}
+            <table id="table_id1" class="display" style="width:100%;" >
+            <thead>
+                <tr>
+                    <th>Код</th> 
+                    <th>Номер карты</th>
+                    <th>Штрих-код</th>
+                    <th>ФИО пациента</th>  
+                </tr>
+            </thead>
+            <tbody>
+                {%for a in patients_ %}
+                <tr class="clickable_row" >
+                    <td>{{a.id}}</td> 
+                    <td>{{a.card_number}}</td>
+                    <td>{{a.barcode}}</td>
+                    <td>{{a.patient_name}}</td>    
+                </tr>
+                {% endfor %}
+            </tbody>        
+            </table>
+            {% endif %}
+        </div>  
+    
+    <script type = "text/javascript">
+    $(document).ready( function () {    
+    var table = $('#table_id1').DataTable( {
+            "bPaginate": false,
+            "bFilter": true,
+            "bInfo": false,
+            "sScrollY": "80%",
+            "scroller": false,
+            "scrollCollapse": false,
+            "pageLength": -1,
+            "columnDefs": [
+            {"targets":0,
+            "width": "10%"},  
+            {"targets":1,
+            "width": "25%"},    
+            {"targets":2,
+            "width": "25%"},
+            {"targets":3,
+            "ordered":true,
+            "width": "40%px"},
+           ]
+    } );
+ 
+
+  $('#table_id1 ').on( 'click','tbody > tr > td',  function () {
+        var  id= table.row( $(this)).data()[0];
+         window.location.href="view_full/"+id
+
+    } );
+
+ } );
+    
+</script>
+
+</body>
+
+</html>

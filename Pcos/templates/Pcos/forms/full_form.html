@@ -1,0 +1,794 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" href="{% static 'Pcos/css/pcos_style_form.css' %}" />
+   <script type="text/javascript" charset="utf8" src="{% static 'Pcos/datatables/jquery-3.5.1.js'%}">
+   </script>
+   <title>Карточка пациента</title>
+</head>	
+<body>
+
+
+      <div class="draw_field">
+        <table class="table_" style="display:table;">
+            <tr class="sheet_name" > 
+                <td colspan="2"> 		
+                    <img src={% static 'Pcos/img/pencil.png' %}> Код пациента ID {{patient_.id}} 
+                </td>
+        </tr>
+      <form  method="POST">
+
+         {%csrf_token%}
+        <tr class="table_string">
+          <td class="table_string_left"> <a> Номер карты </a> </td>
+          <td class="table_string_right"> <label> {{patient_.card_number}} </label> </td>
+       </tr>
+        <tr class="table_string">
+          <td class="table_string_left"> <a> Штрих-код </a> </td>
+          <td class="table_string_right"> <label> {{patient_.barcode}} </label> </td>
+       </tr>
+       <tr class="table_name" > 
+          <td colspan="2"> <a> ПАЦИЕНТ </a></td>
+       </tr> 
+       <tr class="table_string"> 
+        <td class="table_string_left"><a> ФИО пациента</a> 
+        </td>	
+        <td class="table_string_right"><a> {{patient_.patient_name}}</a> 
+        </td>	
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Дата рождения</a> 
+        </td>	
+        <td class="table_string_right"><a>{{patient_.day_of_birth}}</a> 
+        </td>	
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Ethnicity</a> 
+        </td>	
+        <td class="table_string_right"><a>{{patient_.ethnicity_key}}</a> 
+        </td>	
+     </tr>
+
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Пол</a> 
+        </td>   
+        <td class="table_string_right"><a>{{patient_.get_sex_display}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Место рождения</a> 
+        </td>   
+        <td class="table_string_right"><a>{{patient_.place_of_birth}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Город/село</a> 
+        </td>   
+        <td class="table_string_right"><a>{{patient_.get_urban_rural_display}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+         <td class="table_string_left"><a>Дата начала диспансерного наблюдения</a> 
+         </td> 
+         <td class="table_string_right"><a >{{patient_.day_of_begin}}</a> 
+         </td> 
+   </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"> 
+        </td>		
+        <td class="table_string_right">	
+          <a href="{% url 'Pcos:edit_patient' patient_.id %}"><button type="button" style="width:115px; height: 23px">Редактировать</button></a>
+       </td>	
+    </tr>
+
+    <tr class="table_string"> 
+     <td class="table_string_left"><a></a> 
+     </td>		
+     <td class="table_string_right">	
+      
+       <a href="{% url 'Pcos:patients_list' %}" ><button type="button" style="width:115px; height: 23px">Закрыть</button></a>
+
+    </td>	
+ </tr>
+</form>
+</table>
+
+
+<div class="accordion", > 
+ <table class="table_" style="display:table;">
+    <tr class="table_name" > 
+      <td colspan="2"> <a> ВИЗИТЫ </a></td>
+   </tr>
+</table>
+
+{% for visit in visits_ %}
+
+<div class="tab">
+  {% if visit.id == active_visit and active_appointment == 0 and active_ultrasound == 0 and active_laboratory == 0  %}
+  <div id="anchor"> </div>
+  {% endif %}
+
+  {% if visit.id == active_visit %}
+  <input type="checkbox" id="tab'{{visit.id}}'" name="tab-group" value checked>
+  {% else %}
+   <input type="checkbox" id="tab'{{visit.id}}'" name="tab-group" value>
+   {% endif %}
+  <label for="tab'{{visit.id}}'" class="tab-title">Визит {{visit.date}} </label> 
+  <section class="tab-content"> 
+    <table class="table_" style="display:table;">
+      {%csrf_token%}
+      <tr class="table_string"> 
+        <td class="table_string_left"><a> ФИО пациента</a> 
+        </td>	
+        <td class="table_string_right"><a> {{visit.patient_key}}</a> 
+        </td>	
+     </tr>
+     <tr class="table_string"> 
+                <td class="table_string_left"><a>Наименование</a> 
+                </td>   
+                <td class="table_string_right"><a> {{visit}}</a> 
+                </td>   
+            </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a> ФИО доктора</a> 
+        </td>	
+        <td class="table_string_right"><a> {{visit.doctor_key}}</a> 
+        </td>	
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a> Дата визита</a> 
+        </td>	
+        <td class="table_string_right"><a> {{visit.date}}</a> 
+        </td>	
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Возраст</a> 
+        </td>	
+        <td class="table_string_right"><a> {{visit.age_visit}}</a> 
+        </td>	
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Рост (см.)</a> 
+        </td>   
+        <td class="table_string_right"><a> {{visit.height}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Вес (кг.)</a> 
+        </td>   
+        <td class="table_string_right"><a> {{visit.weight}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>ИМТ</a> 
+        </td>   
+        <td class="table_string_right"><a> {{visit.BMI}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Сист. давление (мм. рт. ст.)</a> 
+        </td>   
+        <td class="table_string_right"><a> {{visit.SBP}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Диаст. давление (мм. рт. ст.)</a> 
+        </td>   
+        <td class="table_string_right"><a> {{visit.DBP}}</a> 
+        </td>   
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Пульс (уд. мин.)</a> 
+        </td>   
+        <td class="table_string_right"><a> {{visit.pulse}}</a> 
+        </td>   
+     </tr>
+
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Информированное согласие подписано</a> 
+        </td>	
+       {% if visit.inform_consent %}
+        <td class="table_string_right"><a>Да</a> </td>  
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Участник готов соблюдать все процедуры исследования</a> 
+        </td>	
+          {% if visit.comply_all_study %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+        
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Женщины в возрасте от 18 до 85 лет</a> 
+        </td>	
+        {% if visit.female_age %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Текущая беременность или лактация</a> 
+        </td>	
+        {% if visit.current_preg_lact %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Удаление матки и/или придатков с двух сторон аблация эндометрия и/или эмболизация маточных артерий</a> 
+        </td>	
+        {% if visit.history_hysterectomy %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+        
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Имеется ли что-либо повышающее риск для субъекта либо мешающее полному выполнению участником условий исследования или не дающее закончить исследование</a> 
+        </td>	
+        {% if visit.risk_no_compliance %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+       
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Нежелание участвовать или трудности в понимании информированного согласия или целей и требований исследования</a> 
+        </td>	
+         {% if visit.unwillingness %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Прием в настоящее время</a> 
+        </td>	
+         {% if visit.medicince_listed_now_10 %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %}	
+     </tr>
+
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Прием в предыдущие 3 месяца</a> 
+        </td>	
+         {% if visit.medicince_listed_3month_10 %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %} 
+     </tr>
+
+     <tr class="table_string"> 
+            <td class="table_string_left"><a>Диагностирована преждевременная недостаточность яичников</a> 
+            </td> 
+            {% if visit.pnya %}
+        <td class="table_string_right"><a>Да</a> </td>
+         {% else %}
+         <td class="table_string_right"><a>Нет</a> </td>  
+         {% endif %} 
+      </tr>
+
+
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Наличие СПКЯ</a> 
+        </td>	
+         {% if visit.PCOS != None %}
+        <td class="table_string_right"><a>{{visit.PCOS}}</a> 
+        </td>	
+          {% else %}
+         <td class="table_string_right"><a> </a> </td>  
+         {% endif %} 
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Фенотип СПКЯ</a> 
+        </td>	
+        <td class="table_string_right"><a>{{visit.Phenotype}}</a> 
+        </td>	
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Текст диагноза</a> 
+        </td>	
+        <td class="table_string_right"><a>{{visit.PCOS_text}}</a> 
+        </td>	
+     </tr>
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Наличие исключений для постановки диагноза СПКЯ</a> 
+        </td>  
+       {% if visit.Exclusion != None %}
+        <td class="table_string_right"><a>{{visit.Exclusion}}</a> 
+        </td>  
+          {% else %}
+         <td class="table_string_right"><a> </a> </td>  
+         {% endif %} 
+     </tr>
+     <tr class="table_string"> 
+        <td class="table_string_left"><a>Текст исключений</a> 
+        </td>	
+        <td class="table_string_right"><a>{{visit.Exclusion_text}}</a> 
+        </td>	
+     </tr>
+
+      <tr class="table_string"> 
+        <td class="table_string_left"><a>Наличие одного признака СПКЯ (серая зона)</a> 
+        </td>  
+        {% if visit.Grey != None %}
+        <td class="table_string_right"><a>{{visit.Grey}}</a> 
+        </td>  
+          {% else %}
+         <td class="table_string_right"><a> </a> </td>  
+         {% endif %} 
+     </tr>
+
+     <tr class="table_string"> 
+        <td class="table_string_left"><a></a> 
+        </td>
+
+        <td class="table_string_right">	
+          <a href="{% url 'Pcos:edit_visit' visit.id %}" ><button type="button" style="width:115px; height: 23px">Редактировать</button></a>
+       
+        </td>		
+     </tr>
+
+     <!--*******************  ПРИЁМЫ  ****************************-->
+     <table class="table_" style="display:table;">
+        <tr class="table_name" > 
+          <td colspan="2"> <a> ПРИЁМЫ </a></td>
+       </tr>
+    </table>
+    {% if appointments_ %}
+
+    <div class="appaccordion"> 
+
+      {% for appointment in appointments_ %}
+      {% if appointment.visit_key.id == visit.id %}   
+
+      
+ 
+
+      <div class="apptab">
+         {% if appointment.id == active_appointment %}
+        <div id="anchor"> </div>
+        <input type="checkbox" id="apptab'{{appointment.id}}'" name="apptab-group" value checked>
+         {% else %}
+           <input type="checkbox" id="apptab'{{appointment.id}}'" name="apptab-group">
+         {% endif %}
+        <label for="apptab'{{appointment.id}}'" class="apptab-title">Прием {{appointment.date}} </label> 
+        <section class="apptab-content"> 
+           <table class="table_" style="display:table;">
+              {%csrf_token%}
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a> ФИО пациента</a> 
+                 </td>	
+                 <td class="table_string_right"><a> {{appointment.patient_key}}</a> 
+                 </td>	
+
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a> Визит</a> 
+                 </td>	
+                 <td class="table_string_right"><a> {{appointment.visit_key}}</a> 
+                 </td>	
+
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>ФИО доктора</a> 
+                 </td>	
+                 <td class="table_string_right"><a>{{appointment.doctor_key}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a> Дата приема</a> 
+                 </td>	
+                 <td class="table_string_right"><a> {{appointment.date}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>Менструальный цикл в настоящее время</a> 
+                 </td>	
+                 <td class="table_string_right"><a> {{appointment.get_periods_display}}</a> 
+                 </td>	
+              </tr>
+
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>Аменорея</a> 
+                 </td>	
+                 <td class="table_string_right"><a> {{appointment.get_type_menstrual_disorders_1_display}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>Олигоменорея</a> 
+                 </td>	
+                 <td class="table_string_right"><a>{{appointment.get_type_menstrual_disorders_3_display}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>АМК</a> 
+                 </td>	
+                 <td class="table_string_right"><a>{{appointment.get_type_menstrual_disorders_4_display}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>Минимальная продолжительность менструального цикла</a> 
+                 </td>	
+                 <td class="table_string_right"><a>{{appointment.min_menstrual}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>Максимальная продолжительность менструального цикла</a> 
+                 </td>	
+                 <td class="table_string_right"><a>{{appointment.max_menstrual}}</a> 
+                 </td>	
+              </tr>
+              <tr class="table_string"> 
+                 <td class="table_string_left"><a>Гирсутное число Ферримана-Голлвея</a> 
+                 </td>	
+                 <td class="table_string_right"><a>{{appointment.sum_physician}}</a> 
+                 </td>	
+              </tr>
+                <tr class="table_string"> 
+                 <td class="table_string_left"><a>Гирсутизм</a> 
+                 </td>  
+                 <td class="table_string_right"><a>{{appointment.get_hirsutism_display}}</a> 
+                 </td>  
+              </tr>
+              <tr class="table_string"> 
+               <td class="table_string_left"><a></a> 
+               </td>
+
+               <td class="table_string_right">	
+                    <a href="{% url 'Pcos:edit_appointment' appointment.id %}" ><button type="button" style="width:115px; height: 23px">Редактировать</button></a>
+               </td>		
+            </tr>
+         </table>
+      </section> 
+   </div>  
+   {% endif %} 
+   {% endfor %} 
+</div>
+{% endif %}
+<table class="table_" style="display:table;">
+
+ <tr class="table_string"> 
+  <td class="table_string_left"><a></a> 
+  </td>		
+  <td class="table_string_right">	
+
+   <a href="{% url 'Pcos:add_appointment' patient_.id visit.id %}" ><button type="button" style="width:115px; height: 23px">Новый прием</button></a>
+  
+  </td>	
+</tr>
+</table>	
+<!--*******************  ПРИЁМЫ ****************************-->
+
+<!--*******************  УЗИ  ****************************-->
+<table class="table_" style="display:table;">
+  <tr class="table_name" > 
+    <td colspan="2"> <a> ИССЛЕДОВАНИЯ УЗИ</a></td>
+ </tr>
+</table>
+<div class="usaccordion"> 
+   {% if ultrasounds_ %}
+
+
+   {% for ultrasound in ultrasounds_ %}
+   {% if ultrasound.visit_key.id == visit.id %}   
+   <div class="ustab">
+       {% if ultrasound.id == active_ultrasound %}
+         <div id="anchor"> </div>
+         <input type="checkbox" id="ustab'{{ultrasound.id}}'" name="ustab-group" value checked>
+         {% else %}
+           <input type="checkbox" id="ustab'{{ultrasound.id}}'" name="ustab-group">
+         {% endif %}
+
+    
+     <label for="ustab'{{ultrasound.id}}'" class="ustab-title">Исследование УЗИ {{ultrasound.date}}</label> 
+     <section class="ustab-content"> 
+        <table class="table_" style="display:table;">
+           {%csrf_token%}
+           <tr class="table_string"> 
+              <td class="table_string_left"><a> ФИО пациента</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.patient_key}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a> Визит</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.visit_key}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>ФИО доктора</a> 
+              </td>	
+              <td class="table_string_right"><a>{{ultrasound.doctor_key}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a> Дата приема</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.date}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Правый яичник</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.get_right_ovary_key_display}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Передний размер правого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.right_ovary_front}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Задний размер правого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.right_ovary_posterior}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Боковой размер правого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.right_ovary_side}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Объем правого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.right_volume_total}}</a> 
+              </td>	
+           </tr>
+
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Количество фолликулов в правом яичнике</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.right_follicle_total}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Диаметр наибольшей кисты/фолликула правого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a>{{ultrasound.diameter_right_total}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Левый яичник</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.get_left_ovary_key_display}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Передний размер левого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.left_ovary_front}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Задний размер левого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.left_ovary_posterior}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Боковой размер левого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a > {{ultrasound.left_ovary_side}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Объем левого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a> {{ultrasound.left_volume_total}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Количество фолликулов в левом яичнике</a> 
+              </td>	
+              <td class="table_string_right"><a>{{ultrasound.left_follicle_total}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Диаметр наибольшей кисты/фолликула левого яичника</a> 
+              </td>	
+              <td class="table_string_right"><a>{{ultrasound.diameter_left_total}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+            <td class="table_string_left"><a></a> 
+            </td>
+
+            <td class="table_string_right">	
+               <a href="{% url 'Pcos:edit_ultrasound' ultrasound.id %}" ><button type="button" style="width:115px; height: 23px">Редактировать</button></a>
+
+
+            
+            </td>		
+         </tr>
+      </table>
+   </section> 
+</div> 
+{% endif %}
+{% endfor %} 
+</div>
+
+{% endif %}
+<table class="table_" style="display:table;">
+   <tr class="table_string"> 
+     <td class="table_string_left"><a></a> 
+     </td>		
+     <td class="table_string_right">	
+      <a href="{% url 'Pcos:add_ultrasound' patient_.id visit.id %}" ><button type="button" style="width:115px; height: 23px">Новое УЗИ</button></a>
+
+     </td>	
+  </tr>
+</table>	
+<!--*******************  УЗИ ****************************-->
+
+<!--*******************  АНАЛИЗЫ  ****************************-->
+<table class="table_" style="display:table;">
+  <tr class="table_name" > 
+    <td colspan="2"> <a> ЛАБОРАТОРНЫЕ ИССЛЕДОВАНИЯ </a></td>
+ </tr>
+</table>
+<div class="labaccordion"> 
+
+   {% if laboratory_results_%}
+
+   {% for laboratory_result in laboratory_results_ %}
+   {% if laboratory_result.visit_key.id == visit.id %}   
+   <div class="labtab">
+       {% if laboratory_result.id == active_laboratory %}
+         <div id="anchor"> </div>
+         <input type="checkbox" id="labtab'{{laboratory_result.id}}'" name="labtab-group" value checked>
+       
+         {% else %}
+           <input type="checkbox" id="labtab'{{laboratory_result.id}}'" name="labtab-group">
+         {% endif %}
+    
+     <label for="labtab'{{laboratory_result.id}}'" class="labtab-title">Лабораторное исследование {{laboratory_result.date}}</label> 
+     <section class="labtab-content"> 
+        <table class="table_" style="display:table;">
+           {%csrf_token%}
+           
+           <tr class="table_string"> 
+              <td class="table_string_left"><a> ФИО пациента</a> 
+              </td>	
+              <td class="table_string_right"><a> {{laboratory_result.patient_key}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a> Визит</a> 
+              </td>	
+              <td class="table_string_right"><a> {{laboratory_result.visit_key}}</a> 
+              </td>	
+           </tr>
+           <tr class="table_string"> 
+              <td class="table_string_left"><a>Дата анализа</a> 
+              </td>	
+              <td class="table_string_right"><a>{{laboratory_result.date}}</a> 
+              </td>	
+           </tr>
+       
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>День менструального цикла</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.day_mens_prl}}</a> 
+           </td>	
+        </tr>
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>Значение Тестостерон</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.value_testosteron}}</a> 
+           </td>	
+        </tr>
+
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>Значение СССГ</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.value_shbg}}</a> 
+           </td>	
+        </tr>
+
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>Значение ДГЭАС</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.value_dheas}}</a> 
+           </td>	
+        </tr>
+      
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>Значение ТТГ</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.value_tsh}}</a> 
+           </td>	
+        </tr>
+      
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>Значение 17ОН</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.value_17hp}}</a> 
+           </td>	
+        </tr>
+      
+        <tr class="table_string"> 
+           <td class="table_string_left"><a>Значение ПРЛ</a> 
+           </td>	
+           <td class="table_string_right"><a> {{laboratory_result.value_prl}}</a> 
+           </td>	
+        </tr>
+       
+        <tr class="table_string"> 
+         <td class="table_string_left"><a></a> 
+         </td>
+
+         <td class="table_string_right">	
+            <a href="{% url 'Pcos:edit_laboratory' laboratory_result.id %}" ><button type="button" style="width:115px; height: 23px">Редактировать</button></a>
+         </td>		
+      </tr>
+   </table>
+</section> 
+</div> 
+{% endif %}
+{% endfor %} 
+</div>
+
+{% endif %}
+<table class="table_" style="display:table;">
+   <tr class="table_string"> 
+     <td class="table_string_left"><a></a> 
+     </td>		
+     <td class="table_string_right">	
+      <a href="{% url 'Pcos:add_laboratory' patient_.id visit.id %}" ><button type="button" style="width:115px; height: 23px">Новые анализы</button></a>
+    
+     </td>	
+  </tr>
+</table>	
+<!--*******************  АНАЛИЗЫ ****************************-->
+  
+</table>
+</section> 
+</div>  
+{% endfor %} 
+</div>
+<table class="table_" style="display:table;">
+   <tr class="table_string"> 
+     <td class="table_string_left"><a></a> 
+     </td>		
+     <td class="table_string_right">	
+         <a href="{% url 'Pcos:add_visit' form.instance.id %}" ><button type="button" style="width:115px; height: 23px">Новый визит</button></a>
+
+
+     </td>	
+  </tr>
+</table>	
+
+
+</div>
+
+<script>
+
+
+window.onload =function(){
+el=document.getElementById('anchor').scrollIntoView()
+
+
+}
+</script>
+
+</body>
+
+</html>

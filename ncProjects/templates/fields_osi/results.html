@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Результат
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <div>
+        <a href="{% url 'export_pdf' %}" class="btn">Открыть в PDF</a>
+        <a href="{{ result_excel_file.url }}" class="btn" download>Скачать Excel-файл</a>
+    </div>
+    {{ patient_html_table | safe }}
+{% endblock %}

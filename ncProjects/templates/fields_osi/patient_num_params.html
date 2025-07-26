@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Пациент
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите информацию о пациенте</p>
+    <h4>Параметры СРО</h4>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ num_param_formset.management_form }}
+        {% for num_param_form in num_param_formset %}
+            <div class="fieldWrapper">
+                {{ num_param_form.name.errors }}
+                {{ num_param_form.value.errors }}
+                {{ num_param_form.norm.errors }}
+                <label for="{{ num_param_form.name.id_for_label }}">Параметр {{ forloop.counter }}:</label>
+                {{ num_param_form.name }} = {{ num_param_form.value }} (Норма: {{ num_param_form.norm }})
+            </div>
+            <div class="fieldWrapper">
+                {{ num_param_form.data_columns.errors }}
+                {{ num_param_form.data_columns }}
+            </div>
+            <div class="fieldWrapper">
+                {{ num_param_form.user_session_key.errors }}
+                {{ num_param_form.user_session_key }}
+            </div>
+        {%  endfor %}
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

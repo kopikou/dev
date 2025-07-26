@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Разделение выборки по этническому признаку
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Укажите этнические группы для разделения выборки</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="fieldWrapper">
+                {{ form.ethnicity_value.errors }}
+                <label for="{{ form.ethnicity_value.id_for_label }}">Раса {{ forloop.counter }}:</label>
+                {{ form.ethnicity_value }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.user_session_key.errors }}
+                {{ form.user_session_key }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.ethnicity_values.errors }}
+                {{ form.ethnicity_values }}
+            </div>
+        {%  endfor %}
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

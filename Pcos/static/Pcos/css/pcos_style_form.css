@@ -1,0 +1,299 @@
+html {
+    display: block;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+body {
+    font: 14px/18px Arial, sans-serif;
+    width: 100%;
+    height: auto;
+    background-color: #f2ede9; 
+}
+
+
+.draw_field{
+    background: #F3F3F3;
+    width: 80%;
+    height: 98.5%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.table_{
+    border: 1px solid #DDDDDD;
+    padding: 0;
+    background: #F3F3F3;
+    width: 100%;
+    border-collapse: collapse;
+
+}
+
+.table_string{
+    display: table-row;
+    border: 1px solid #DDDDDD; 
+}
+
+.table_string_left{
+    font-size: 14px;
+    padding: 2px;
+    font-weight: bold;
+    padding-left: 5px;
+    padding-right: 5px;
+    width: 50%;\
+    
+   
+}
+
+.table_string_right{
+    position: static;
+    display: table-cell;
+    float: none;
+    width: 50%;
+    font-size: 16px; 
+}
+
+.table_name{
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 14px;
+    display: table-row;
+    background: #FFFFE0;
+    text-align: Left;
+    font-weight: bold;
+    border: 1px solid #CCCCCC;
+
+}
+.sheet_name{
+    font: normal 13px "Helvetica Neue",Helvetica,Arial, Helvetica, sans-serif;
+    padding: 6px;
+    border: 1px solid #A7C3F1;
+    color: #000066;
+    max-width: 800px;
+    background-color: #E2EAFA;
+}
+
+
+.content__table{
+    height:  98%;
+}
+#id_patient_name, #id_card_number, #id_barcode, #id_sex, #id_place_of_birth, 
+#id_urban_rural, #id_patient_key, #id_doctor_key, #id_age_visit,
+#id_visit_key, #id_height, #id_weight, #id_BMI, #id_SBP, #id_DBP, #id_pulse{
+    width: 300px;
+    font-size: 16px;
+}
+#id_periods,#id_type_menstrual_disorders_1,
+#id_type_menstrual_disorders_3,#id_type_menstual_disorders_4{
+    width: 300px;
+    font-size: 16px;
+}
+#id_min_menstrual, #id_max_menstrual, #id_sum_physician,
+#id_hirsutism{
+    width: 300px;
+    font-size: 16px;
+}
+#id_right_volume_total, #id_right_follicle_total, #id_diameter_right_total, 
+#id_left_volume_total, #id_left_follicle_total, #id_diameter_left_total,
+#id_left_ovary_front, #id_right_ovary_front, #id_left_ovary_posterior,   
+#id_right_ovary_posterior, #id_left_ovary_side, #id_right_ovary_side,    
+#id_day_mens_prl, #id_value_testosteron, #id_value_shbg, #id_value_dheas, 
+#id_value_tsh, #id_value_17hp, #id_value_prl, #id_left_ovary_key, #id_right_ovary_key{
+    width: 300px;
+    font-size: 16px;
+}
+#id_standard_norms, #id_value_testosteron_max, #id_value_IFA_max, #id_value_dheas_max,
+#id_value_tsh_min, #id_value_tsh_max, #id_value_17hp_max_1, #id_value_prl_max_1,
+#id_value_prl_max_2     {
+    width: 300px;
+    font-size: 16px;
+}
+#id_day_of_birth, #id_day_of_begin, #id_date{
+    width: 300px;
+    font-size: 16px;
+}
+
+
+
+#id_ethnicity_key{
+    width: 300px;
+    font-size: 16px;
+    
+}
+#id_inform_consent, #id_comply_all_study, #id_female_age, #id_current_preg_lact, 
+#id_history_hysterectomy, #id_risk_no_compliance, #id_unwillingness, 
+#id_medicince_listed_now_10, #id_medicince_listed_3month_10, #id_pnya, #id_standard_norms{
+    width: 300px;
+    font-size: 16px;
+    list-style-type: none;
+    margin: 0;
+    padding-left: 5px
+}
+
+
+
+
+.tab input, .tab-content { display: none; }
+   .tab {
+    border: 1px solid #A7C3F1; /* Параметры рамки */
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    margin-bottom: 10px; /* Расстояние между пунктами */
+    background-color:   #E2EAFA;
+   }
+   .tab-title {
+    padding: 10px; /* Поля вокруг текста */
+    display: block; /* Блочный элемент */
+    text-transform: uppercase; /* Все буквы заглавные */
+    font-weight: bold; /* Жирное начертание */
+    cursor: pointer; /* Вид курсора */
+
+   }
+   .tab-title::after {
+    content: '+'; /* Выводим плюс */
+    float: right; /* Размещаем по правому краю */
+   
+   }
+   .tab-content {
+    padding: 10px 20px; /* Поля вокруг текста */
+    background-color:   #F3F3F3;
+    
+   }
+   .tab :checked + .tab-title {
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    background-color: #759BE7;
+   
+   }
+   .tab :checked + .tab-title::after {
+    content: '-'; /* Выводим минус */
+   
+   }
+   .tab :checked ~ .tab-content {
+    display: block; /* Показываем содержимое */
+   
+   }
+
+
+
+.apptab input, .apptab-content { display: none; }
+   .apptab {
+    border: 1px solid #A7C3F1; /* Параметры рамки */
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    margin-bottom: 10px; /* Расстояние между пунктами */
+    background-color:     #E2EAFA;
+   }
+   .apptab-title {
+    padding: 10px; /* Поля вокруг текста */
+    display: block; /* Блочный элемент */
+    text-transform: uppercase; /* Все буквы заглавные */
+    font-weight: bold; /* Жирное начертание */
+    cursor: pointer; /* Вид курсора */
+
+   }
+   .apptab-title::after {
+    content: '+'; /* Выводим плюс */
+    float: right; /* Размещаем по правому краю */
+   
+   }
+   .apptab-content {
+    padding: 10px 20px; /* Поля вокруг текста */
+    background-color:   #F3F3F3;
+    
+   }
+   .apptab :checked + .apptab-title {
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    background-color: #759BE7;
+   
+   }
+   .apptab :checked + .apptab-title::after {
+    content: '-'; /* Выводим минус */
+   
+   }
+   .apptab :checked ~ .apptab-content {
+    display: block; /* Показываем содержимое */
+   
+   }
+
+.ustab input, .ustab-content { display: none; }
+   .ustab {
+    border: 1px solid #A7C3F1; /* Параметры рамки */
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    margin-bottom: 10px; /* Расстояние между пунктами */
+    background-color:   #E2EAFA;
+   }
+   .ustab-title {
+    padding: 10px; /* Поля вокруг текста */
+    display: block; /* Блочный элемент */
+    text-transform: uppercase; /* Все буквы заглавные */
+    font-weight: bold; /* Жирное начертание */
+    cursor: pointer; /* Вид курсора */
+
+   }
+   .ustab-title::after {
+    content: '+'; /* Выводим плюс */
+    float: right; /* Размещаем по правому краю */
+   
+   }
+   .ustab-content {
+    padding: 10px 20px; /* Поля вокруг текста */
+    background-color:   #F3F3F3;
+    
+   }
+   .ustab :checked + .ustab-title {
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    background-color: #759BE7;
+   
+   }
+   .ustab :checked + .ustab-title::after {
+    content: '-'; /* Выводим минус */
+   
+   }
+   .ustab :checked ~ .ustab-content {
+    display: block; /* Показываем содержимое */
+   
+   }
+
+
+.labtab input, .labtab-content { display: none; }
+   .labtab {
+    border: 1px solid #A7C3F1; /* Параметры рамки */
+    border-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    margin-bottom: 10px; /* Расстояние между пунктами */
+    background-color:   #E2EAFA;
+   }
+   .labtab-title {
+    padding: 10px; /* Поля вокруг текста */
+    display: block; /* Блочный элемент */
+    text-transform: uppercase; /* Все буквы заглавные */
+    font-weight: bold; /* Жирное начертание */
+    cursor: pointer; /* Вид курсора */
+
+   }
+   .labtab-title::after {
+    content: '+'; /* Выводим плюс */
+    float: right; /* Размещаем по правому краю */
+   
+   }
+   .labtab-content {
+    padding: 10px 20px; /* Поля вокруг текста */
+    background-color:   #F3F3F3;
+    
+   }
+.labtab :checked + .labtab-title {
+   .labborder-radius: 5px 5px 0px 0px; /* Скругляем уголки */
+    background-color: #759BE7;
+   
+   }
+   .labtab :checked + .labtab-title::after {
+    content: '-'; /* Выводим минус */
+   
+   }
+   .labtab :checked ~ .labtab-content {
+    display: block; /* Показываем содержимое */
+   
+   }
+
+
+

@@ -1,0 +1,27 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Разделение выборки
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Выберите столбец, содержащий код контрольной группы</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.selection_col.errors }}
+            <label for="{{ form.selection_col.id_for_label }}">Столбец:</label>
+            {{ form.selection_col }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.data_columns.errors }}
+            {{ form.data_columns }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

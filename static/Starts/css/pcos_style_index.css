@@ -1,0 +1,190 @@
+html {
+    display: block;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+body {
+    font: 12px/18px Arial, sans-serif;
+    width: 100%;
+    height: auto;
+    background-color: #f2ede9;
+  
+}
+
+header {
+    background-color: #f6f5f3;
+}
+
+.header__subheading {
+    text-align: center;
+    color: #7d6857;
+    font-size: 14px;
+    line-height: 1.333;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin: 0 0 0 auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto 
+}
+
+.header__logotype {
+    text-align: center;
+    display: block;
+    }
+
+#menu{
+    text-transform: uppercase;
+    width: 100%;
+    background-color: #cbb59b;
+   
+}
+#horizontal-multilevel-menu, #horizontal-multilevel-menu ul {
+    padding: 0 20px;
+    list-style: none;
+    box-sizing: border-box;
+}
+.main-navigation.inner {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    flex-direction: row;
+}
+
+ul {
+    display: block;
+    list-style-type: disc;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    padding-inline-start: 40px;
+}
+.root__item__selected{
+    color: #38322d;
+    cursor: pointer;
+    display: inline-block;
+    font-family: Arsenal, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-stretch: 100%;
+    font-style: normal;
+    font-variant-caps: normal;
+    font-variant-east-asian: normal;
+    font-variant-ligatures: normal;
+    font-variant-numeric: normal;
+    font-weight: 600;
+    height: 18px;
+    letter-spacing: 0.08px;
+    line-height: 18px;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    padding-bottom: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 14px;
+    text-align: center;
+    text-decoration-color: #7d6857;
+    text-decoration-line: none;
+    text-decoration-style: solid;
+    text-decoration-thickness: auto;
+    text-transform: uppercase;
+    transition-delay: 0s, 0s;
+    transition-duration: 0.2s, 0.2s;
+    transition-property: color, font-weight;
+    transition-timing-function: ease, ease;
+    width 65.4375px;
+}
+
+.root__item{
+    color: #261406;
+    cursor: pointer;
+    display: inline-block;
+    font-family: Arsenal, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-stretch: 100%;
+    font-style: normal;
+    font-variant-caps: normal;
+    font-variant-east-asian: normal;
+    font-variant-ligatures: normal;
+    font-variant-numeric: normal;
+    font-weight: 400;
+    height: 18px;
+    letter-spacing: 0.08px;
+    line-height: 18px;
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+    padding-bottom: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 14px;
+    text-align: center;
+    text-decoration-color: #261406;
+    text-decoration-line: none;
+    text-decoration-style: solid;
+    text-decoration-thickness: auto;
+    text-transform: uppercase;
+    transition-delay: 0s, 0s;
+    transition-duration: 0.2s, 0.2s;
+    transition-property: color, font-weight;
+    transition-timing-function: ease, ease;
+}
+
+.root__item:hover{
+     color: #7d6857;
+}
+
+.content__sheet{
+    font-size: 14px;
+    color: #7d6857;
+    line-height: 1.5;
+    margin-bottom: 0px;
+    padding-left: 0;
+    list-style-type: none;
+    padding: 20px 0px 0px;
+    background: white;
+    margin: 10 10 10 10;
+    width: auto;
+    min-height: auto;
+    line-height: 22px;
+    color: #7d6857;
+    text-align: justify;
+
+}
+
+.user_identification{
+    text-align: center;
+    color: #7d6857;
+    line-height: 1.333;
+    font-weight: 400;
+    margin: 0 0 0 0;
+    display: block;
+    margin-left: auto;
+    margin-right: auto; 
+
+}
+
+.btn{
+    display: inline-block;
+    vertical-align: top;
+    border: 3px solid #7d6857;
+    padding: 6px 30px;
+    color: #38322d;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;  
+    transition: background .1s linear, color .1s linear;
+}
+
+.btn:hover{ 
+    background-color: #cbb59b;
+    color: #38322d;
+}
+

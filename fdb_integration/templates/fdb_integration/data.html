@@ -1,0 +1,513 @@
+{% extends 'fdb_integration/base.html' %}
+
+{% block title %}
+    Калькуляторы
+{% endblock %}
+
+{% block content %}
+    <h1>Медицинские калькуляторы</h1>
+    
+    <div class="visualization-container">
+        <!-- Навигация по типам калькуляторов -->
+        <div class="visualization-tabs">
+            <button class="tab-button active" data-tab="bmi">Калькулятор ИМТ</button>
+            <button class="tab-button" data-tab="sds">Калькулятор СДС</button>
+        </div>
+        
+        <!-- Контейнер для контента вкладок -->
+        <div class="tab-content">
+            <!-- Вкладка ИМТ -->
+            <div id="bmi-tab" class="tab-pane active">
+                <div class="calculator-forms">
+                    <div class="calculator-form">
+                        <h3>Простой калькулятор ИМТ</h3>
+                        <form id="bmiSimpleForm">
+                            <div class="form-group">
+                                <label for="height">Рост (см):</label>
+                                <input type="number" id="height" class="form-control" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="weight">Вес (кг):</label>
+                                <input type="number" id="weight" class="form-control" step="0.01" required>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" id="includeDescription" class="form-check-input">
+                                <label for="includeDescription" class="form-check-label">Показать описание</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Рассчитать</button>
+                        </form>
+                        <div id="simpleResult" class="result-container"></div>
+                    </div>
+
+                    <div class="calculator-form">
+                        <h3>Расширенный калькулятор ИМТ</h3>
+                        <form id="bmiAdvancedForm">
+                            <div class="form-group">
+                                <label for="bmi-file-select">Выберите файл:</label>
+                                <select id="bmi-file-select" class="form-control" required>
+                                    <option value="">-- Выберите файл --</option>
+                                    <!-- Файлы будут загружены через JS -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="heightColumn">Столбец с ростом (название):</label>
+                                <input type="text" id="heightColumn" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="weightColumn">Столбец с весом (название):</label>
+                                <input type="text" id="weightColumn" class="form-control" required>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" id="roundValue" class="form-check-input" checked>
+                                <label for="roundValue" class="form-check-label">Округлять до 2 знаков</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" id="includeGroups" class="form-check-input" checked>
+                                <label for="includeGroups" class="form-check-label">Включить категории ИМТ</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" id="saveResults" class="form-check-input">
+                                <label for="saveResults" class="form-check-label">Сохранить результаты</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Рассчитать</button>
+                        </form>
+                        <div id="advancedResult" class="result-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладка СДС -->
+            <div id="sds-tab" class="tab-pane">
+                <div class="calculator-info">
+                    <h3>Калькулятор стандартных отклонений (СДС)</h3>
+                    <p>В скором времени здесь будет доступен калькулятор для расчета стандартных отклонений антропометрических показателей.</p>
+                    <p>Функционал находится в разработке и появится в ближайших обновлениях сервиса.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ошибок -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Ошибка</h3>
+            <p id="error-message"></p>
+            <button class="btn btn-primary modal-close">Закрыть</button>
+        </div>
+    </div>
+
+    <style>
+        .visualization-container {
+            margin: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .visualization-tabs {
+            display: flex;
+            margin-bottom: 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+        }
+        
+        .tab-button:hover {
+            background: #ddd;
+        }
+        
+        .tab-button.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .tab-content {
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            padding: 20px;
+            background: white;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        .calculator-forms {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .calculator-form {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .calculator-info {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .form-check {
+            margin-bottom: 15px;
+        }
+        
+        .form-check-input {
+            margin-right: 10px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3e8e41;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            min-height: 50px;
+        }
+        
+        .error {
+            color: #d32f2f;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 5px;
+            border: none;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .modal h3 {
+            color: #d32f2f;
+            margin-top: 0;
+        }
+        
+        .modal .close {
+            color: #aaa;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal .close:hover {
+            color: #333;
+        }
+        
+        .modal-close {
+            margin-top: 20px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .visualization-tabs {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                width: 100%;
+                text-align: left;
+                border-radius: 0;
+                margin-right: 0;
+                margin-bottom: 5px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
+            
+            .calculator-forms {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        const serviceUrl = '{{ service_url }}';
+        console.log('Service URL:', serviceUrl);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчики вкладок
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Удаляем активный класс у всех кнопок и панелей
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabPanes.forEach(pane => pane.classList.remove('active'));
+                    
+                    // Добавляем активный класс к текущей кнопке и соответствующей панели
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Модальное окно
+            const modal = document.getElementById('error-modal');
+            const span = document.querySelector('.close');
+            const modalCloseBtn = document.querySelector('.modal-close');
+            
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+            
+            span.onclick = closeModal;
+            modalCloseBtn.onclick = closeModal;
+            
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+            
+            // Функция для отображения ошибок
+            function showError(message) {
+                document.getElementById('error-message').textContent = message;
+                modal.style.display = 'block';
+            }
+            
+            // Загрузка списка файлов при открытии страницы
+            loadUserFiles();
+            
+            async function loadUserFiles() {
+                const authToken = '{{ request.session.auth_token }}';
+                const storageServiceUrl = '{{ storage_service_url }}';
+                try {
+                    const response = await fetch(`${storageServiceUrl}/storage/list/my`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка загрузки файлов');
+                    
+                    const files = await response.json();
+                    const select = document.getElementById('bmi-file-select');
+                    
+                    select.innerHTML = '<option value="">-- Выберите файл --</option>';
+                    files.forEach(file => {
+                        const option = document.createElement('option');
+                        option.value = file.id;
+                        option.textContent = `${file.filename} (${new Date(file.upload_date).toLocaleDateString()})`;
+                        select.appendChild(option);
+                    });
+                } catch (error) {
+                    showError('Не удалось загрузить список файлов: ' + error.message);
+                }
+            }
+
+            // Простой калькулятор ИМТ
+            document.getElementById('bmiSimpleForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const height = parseFloat(document.getElementById('height').value) / 100; // Конвертируем см в метры
+                const weight = parseFloat(document.getElementById('weight').value);
+                const includeDescription = document.getElementById('includeDescription').checked;
+                
+                try {
+                    console.log('Отправка запроса на:', `${serviceUrl}/calculation/bmi/simple?m=${weight}&h=${height}&description=${includeDescription}`);
+                    
+                    const response = await fetch(`${serviceUrl}/calculation/bmi/simple?m=${weight}&h=${height}&description=${includeDescription}`);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.detail || `Ошибка HTTP! Статус: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    let resultHtml = `<p><strong>ИМТ:</strong> ${data.bmi.toFixed(2)}</p>`;
+                    if (data.description) {
+                        resultHtml += `<p><strong>Категория:</strong> ${data.description}</p>`;
+                    }
+                    
+                    document.getElementById('simpleResult').innerHTML = resultHtml;
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    document.getElementById('simpleResult').innerHTML = 
+                        `<p class="error">Ошибка: ${error.message}</p>`;
+                }
+            });
+
+            // Расширенный калькулятор ИМТ
+            document.getElementById('bmiAdvancedForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fileId = document.getElementById('bmi-file-select').value;
+                const heightColumn = document.getElementById('heightColumn').value;
+                const weightColumn = document.getElementById('weightColumn').value;
+                const roundValue = document.getElementById('roundValue').checked ? 2 : 0;
+                const includeGroups = document.getElementById('includeGroups').checked;
+                const saveResults = document.getElementById('saveResults').checked;
+                
+                try {
+                    // Сначала загружаем файл
+                    const authToken = '{{ request.session.auth_token }}';
+                    if (!authToken) {
+                        throw new Error('Требуется авторизация');
+                    }
+                    
+                    const loadResponse = await fetch(`${serviceUrl}/data/load/${fileId}?sep=,`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (!loadResponse.ok) {
+                        const error = await loadResponse.json().catch(() => null);
+                        throw new Error(error?.detail || 'Не удалось загрузить файл');
+                    }
+                    
+                    // Затем рассчитываем ИМТ
+                    const params = {
+                        m_column: weightColumn,
+                        h_column: heightColumn,
+                        round_value: roundValue,
+                        groups: includeGroups,
+                        need_save: saveResults
+                    };
+                    
+                    const calcResponse = await fetch(`${serviceUrl}/calculation/bmi/dataframe`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(params)
+                    });
+                    
+                    const data = await calcResponse.json();
+                    
+                    // Отображаем результаты в таблице
+                    let resultHtml = '<table><tr><th>№</th><th>ИМТ</th>';
+                    if (includeGroups) {
+                        resultHtml += '<th>Категория ИМТ</th>';
+                    }
+                    resultHtml += '</tr>';
+                    
+                    const rows = Object.keys(data.BMI);
+                    rows.forEach(row => {
+                        resultHtml += `<tr><td>${row}</td><td>${data.BMI[row]}</td>`;
+                        if (includeGroups) {
+                            resultHtml += `<td>${data.BMI_group ? data.BMI_group[row] : ''}</td>`;
+                        }
+                        resultHtml += '</tr>';
+                    });
+                    
+                    resultHtml += '</table>';
+                    document.getElementById('advancedResult').innerHTML = resultHtml;
+                    
+                } catch (error) {
+                    document.getElementById('advancedResult').innerHTML = 
+                        `<p class="error">Ошибка: ${error.message}</p>`;
+                }
+            });
+        });
+    </script>
+{% endblock %}

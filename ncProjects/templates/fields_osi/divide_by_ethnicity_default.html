@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Деление выборки по расе
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Необходимо ли выделять подвыборку по расе пациента?</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.divide_by_ethnicity.errors }}
+            <label for="{{ form.divide_by_ethnicity.id_for_label }}">Варианты:</label>
+            {{ form.divide_by_ethnicity }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

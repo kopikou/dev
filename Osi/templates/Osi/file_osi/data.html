@@ -1,0 +1,49 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Данные
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="fieldWrapper">
+            {{ form.data_file.errors }}
+            <label for="{{ form.data_file.id_for_label }}">Файл с данными:</label>
+            {{ form.data_file }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.numerator_params_quantity.errors }}
+            <label for="{{ form.numerator_params_quantity.id_for_label }}">Количество параметров СРО:</label>
+            {{ form.numerator_params_quantity }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.denominator_params_quantity.errors }}
+            <label for="{{ form.denominator_params_quantity.id_for_label }}">Количество параметров АОЗ:</label>
+            {{ form.denominator_params_quantity }}
+        </div>
+        <div><b>Группирующие факторы:</b></div>
+        <div class="fieldWrapper">
+            {{ form.divide_by_age.errors }}
+            <label for="{{ form.divide_by_age.id_for_label }}">Возраст:</label>
+            {{ form.divide_by_age }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.divide_by_gender.errors }}
+            <label for="{{ form.divide_by_gender.id_for_label }}">Пол:</label>
+            {{ form.divide_by_gender }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.divide_by_ethnicity.errors }}
+            <label for="{{ form.divide_by_ethnicity.id_for_label }}">Раса:</label>
+            {{ form.divide_by_ethnicity }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

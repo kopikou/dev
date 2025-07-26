@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Разделение выборки по возрастному признаку
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Введите возрастные промежутки для разделения выборки</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="fieldWrapper">
+                {{ form.lower_border_value.errors }}
+                {{ form.upper_border_value.errors }}
+                <label for="{{ form.lower_border_value.id_for_label }}">Промежуток {{ forloop.counter }}:</label>
+                {{ form.lower_border_value }} -
+                {{ form.upper_border_value }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.user_session_key.errors }}
+                {{ form.user_session_key }}
+            </div>
+        {%  endfor %}
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

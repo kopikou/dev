@@ -1,0 +1,48 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Пациент
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите информацию о пациенте</p>
+    <h4>Общая информация</h4>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ info_form.non_field_errors }}
+        <div class="fieldWrapper">
+            {{ info_form.patient_id.errors }}
+            <label for="{{ info_form.patient_id.id_for_label }}">Уникальный идентификатор:</label>
+            {{ info_form.patient_id }}
+        </div>
+        <div class="fieldWrapper">
+            {{ info_form.age.errors }}
+            <label for="{{ info_form.age.id_for_label }}">Возраст:</label>
+            {{ info_form.age }}
+        </div>
+        <div class="fieldWrapper">
+            {{ info_form.gender.errors }}
+            <label for="{{ info_form.gender.id_for_label }}">Пол:</label>
+            {{ info_form.gender }}
+        </div>
+        <div class="fieldWrapper">
+            {{ info_form.ethnicity.errors }}
+            <label for="{{ info_form.ethnicity.id_for_label }}">Раса:</label>
+            {{ info_form.ethnicity }}
+        </div>
+        <div class="fieldWrapper">
+                {{ info_form.user_session_key.errors }}
+                {{ info_form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+                {{ info_form.gender_values.errors }}
+                {{ info_form.gender_values }}
+        </div>
+        <div class="fieldWrapper">
+                {{ info_form.ethnicity_values.errors }}
+                {{ info_form.ethnicity_values }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

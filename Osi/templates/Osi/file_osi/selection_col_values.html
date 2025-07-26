@@ -1,0 +1,32 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Разделение выборки
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Укажите значения для разделения выборки</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.control_selection_value.errors }}
+            <label for="{{ form.control_selection_value.id_for_label }}">Контроль:</label>
+            {{ form.control_selection_value }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.case_selection_value.errors }}
+            <label for="{{ form.case_selection_value.id_for_label }}">Патологии:</label>
+            {{ form.case_selection_value }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.selection_col_values.errors }}
+            {{ form.selection_col_values }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

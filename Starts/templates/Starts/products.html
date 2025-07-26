@@ -1,0 +1,79 @@
+<!{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title> Диагностика СПКЯ </title>
+	<link rel="stylesheet" href="{% static 'Starts/css/pcos_style_index.css' %}" /> 
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+	<style>
+   table { 
+    width: 100%; /* Ширина таблицы */
+    border: 1px solid ;
+    border-collapse: collapse; /* Отображать только одинарные линии */
+    font-size: 14px;
+    color: #7d6857;
+   }
+   th { 
+    text-align: left; /* Выравнивание по левому краю */
+    padding: 5px; /* Поля вокруг содержимого ячеек */
+    border: 1px solid ;
+    border-color: #7d6857; /* Рамка вокруг таблицы */
+   }
+   td { 
+    padding: 5px; /* Поля вокруг содержимого ячеек */
+    border: 1px solid;
+    border-color: #7d6857; /* Рамка вокруг таблицы */
+   }
+  </style>
+</head>
+<body>
+	<div class="inner">
+		<span class="header__subheading"> Федеральное государственное бюджетное научное учреждение</span> 
+		<a href="https://health-family.ru/ru/"  target="blank" class="header__logotype"> <img src={% static 'Starts/img/logo.png' %}></a> 
+		<span class="header__subheading">Функциональная группа информационных систем и биостатистики</span> 
+	</div>
+	<nav id="menu"> 
+		<ul id="horizontal-multilevel-menu" class="main-navigation inner">
+			<li> 
+				<a href="/" class="root__item">ИС в ИНЦ ПЗСРЧ</a>
+			</li>
+			<li> 
+				<a href="analysis" class="root__item">Аналитическая работа</a>
+			</li>
+			<li> 
+				<a href="products" class="root__item__selected">Разработки</a>
+			</li>
+			<li> 
+				<a href="contacts" class="root__item">Контакты</a>
+			</li>
+		</ul>
+	</nav>
+	<div class="content__sheet">
+	<p>	Автоматизация диагностики и принятия врачебных решений </p>
+	<table >
+	<tr >
+  		<td width=20%; text-align="center"><a href="pcos/auth"> Диагностика СПКЯ </a></td>
+  		<td >Программа для работы с данными результатов медицинских исследований пациентов с возможностью поддержки принятия врачебных решений при постановке диагноза СПКЯ у женщин репродуктивного возраста </td>
+	</tr>
+	</table>
+
+	<p> Автоматизация аналитической работы </p>	
+	<table >
+	<tr >
+  		<td width=20%><a href="http://dev.sbamsr.irk.ru:8111/"> ДИ для медиан и их разностей</a></td>
+  		<td >Доверительный интервал для медиан и их разностей: автоматизация расчета и визуализация</td>
+	</tr>
+	<tr>
+  		<td width=20%><a href="osi/instruction"> Расчет коэффициента окисления</a></td>
+  		<td>Расчет коэффициента свободнорадикального окисления биосубстратов с учетом этнической принадлежности, возраста и пола пациента</td>
+	</tr>
+	<tr>
+  		<td width=20%><a href="fdb/auth"> Предобработка данных</a></td>
+  		<td>Предобработка данных: сервис загрузки и управления файлами с данными, сервис описательной статистики данных, сервис визуализации данных, сервис импутации данных, калькуляторы</td>
+	</tr>
+	</table>
+
+	</div>
+</body>
+</html>

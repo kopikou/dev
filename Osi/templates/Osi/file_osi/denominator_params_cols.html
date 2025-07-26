@@ -1,0 +1,30 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Знаменатель
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных из файла</h1>
+    <p>Укажите столбцы, содержащие параметры АОЗ</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="fieldWrapper">
+                {{ form.den_param_col.errors }}
+                <label for="{{ form.den_param_col.id_for_label }}">Параметр {{ forloop.counter }}:</label>
+                {{ form.den_param_col }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.user_session_key.errors }}
+                {{ form.user_session_key }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.data_columns.errors }}
+                {{ form.data_columns }}
+            </div>
+        {%  endfor %}
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

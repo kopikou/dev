@@ -1,0 +1,23 @@
+{% extends 'Osi/base.html' %}
+
+{% block title %}
+    Вариант работы
+{% endblock %}
+
+{% block content %}
+    <h1>Ввод данных</h1>
+    <p>Укажите подходящий для Вас вариант работы с приложением</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+            {{ form.mode.errors }}
+            <label for="{{ form.mode.id_for_label }}">Режим:</label>
+            {{ form.mode }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.user_session_key.errors }}
+            {{ form.user_session_key }}
+        </div>
+        <input type="submit" value="Далее" class="btn"/>
+    </form>
+{% endblock %}

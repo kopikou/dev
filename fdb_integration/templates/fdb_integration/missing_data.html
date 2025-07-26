@@ -1,0 +1,566 @@
+{% extends "fdb_integration/base.html" %}
+
+{% block title %}Импутация данных{% endblock %}
+
+{% block content %}
+<div class="service-container">
+    <h2>Импутация пропущенных данных</h2>
+    
+    <!-- Шаг 1: Выбор файла -->
+    <div class="step-section" id="fileSelectionSection">
+        <h3>1. Выберите файл для анализа</h3>
+        <div class="form-group">
+            <label for="file-select">Выберите файл:</label>
+            <select id="file-select" class="form-control" required>
+                <option value="">-- Выберите файл --</option>
+                <!-- Файлы будут загружены через JS -->
+            </select>
+        </div>
+        <button id="analyzeBtn" class="btn">Проанализировать</button>
+    </div>
+    
+    <!-- Шаг 2: Анализ данных -->
+    <div class="step-section" id="analysisSection" style="display: none;">
+        <h3>2. Результаты анализа данных</h3>
+        
+        <div class="visualization-container" id="missingMatrixBefore"></div>
+        
+        <div class="stats-container">
+            <h4>Статистика по столбцам:</h4>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Тип</th>
+                        <th>Пропущено</th>
+                        <th>Механизм пропусков</th>
+                        <th>Рекомендуемый метод</th>
+                    </tr>
+                </thead>
+                <tbody id="columnStats"></tbody>
+            </table>
+        </div>
+        
+        <div class="actions">
+            <button id="proceedToImputationBtn" class="btn">Перейти к импутации</button>
+        </div>
+    </div>
+    
+    <!-- Шаг 3: Импутация данных -->
+    <div class="step-section" id="imputationSection" style="display: none;">
+        <h3>3. Настройка импутации</h3>
+        
+        <div class="form-group">
+            <label for="threshold">Порог импутации:</label>
+            <input type="number" id="threshold" name="threshold" min="0" max="1" step="0.01" value="0.3" required>
+            <small class="form-text">Максимальный допустимый процент пропусков (0-1, по умолчанию 0.3)</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="method">Метод импутации:</label>
+            <select id="method" name="method">
+                <option value="auto">Автоматический выбор (рекомендуется)</option>
+                <option value="mean">Среднее значение</option>
+                <option value="knn">K-ближайших соседей</option>
+                <option value="mice">MICE (Multiple Imputation)</option>
+                <option value="random_forest">Случайный лес</option>
+                <option value="frequent">Наиболее частые значения</option>
+            </select>
+        </div>
+        
+        <button id="processBtn" class="btn">Выполнить импутацию</button>
+    </div>
+    
+    <!-- Шаг 4: Результаты импутации -->
+    <div class="step-section" id="resultsSection" style="display: none;">
+        <h3>4. Результаты импутации</h3>
+        
+        <div class="visualization-container" id="visualizationContainer"></div>
+        <div class="actions">
+            <button id="downloadGraphsBtn" class="btn">Скачать графики</button>
+            <button id="downloadTablesBtn" class="btn">Скачать таблицы</button>
+            <button id="downloadCsvBtn" class="btn">Скачать CSV</button>
+            <button id="downloadExcelBtn" class="btn">Скачать Excel</button>
+        </div>
+        <div class="stats-container">
+            <div class="stats-before">
+                <h4>До импутации:</h4>
+                <div id="statsBefore"></div>
+            </div>
+            <div class="stats-after">
+                <h4>После импутации:</h4>
+                <div id="statsAfter"></div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Загрузка списка файлов при открытии страницы
+    loadUserFiles();
+            
+    async function loadUserFiles() {
+        const authToken = '{{ request.session.auth_token }}';
+        const storageServiceUrl = '{{ storage_service_url }}';
+        try {
+            const response = await fetch(`${storageServiceUrl}/storage/list/my`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+                    
+            if (!response.ok) throw new Error('Ошибка загрузки файлов');
+                    
+            const files = await response.json();
+            const select = document.getElementById('file-select');
+            
+            if (!select) {
+                console.error('Элемент file-select не найден');
+                return;
+            }
+                    
+            select.innerHTML = '<option value="">-- Выберите файл --</option>';
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file.id;
+                option.textContent = `${file.filename} (${new Date(file.upload_date).toLocaleDateString()})`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Не удалось загрузить список файлов');
+        }
+    }
+
+    // Получаем элементы после проверки их существования
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const proceedToImputationBtn = document.getElementById('proceedToImputationBtn');
+    const processBtn = document.getElementById('processBtn');
+    const fileSelectionSection = document.getElementById('fileSelectionSection');
+    const analysisSection = document.getElementById('analysisSection');
+    const imputationSection = document.getElementById('imputationSection');
+    const resultsSection = document.getElementById('resultsSection');
+    const columnStats = document.getElementById('columnStats');
+    const missingMatrixBefore = document.getElementById('missingMatrixBefore');
+    const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+    const statsBefore = document.getElementById('statsBefore');
+    const statsAfter = document.getElementById('statsAfter');
+    const visualizationContainer = document.getElementById('visualizationContainer');
+    const downloadGraphsBtn = document.getElementById('downloadGraphsBtn');
+    const downloadTablesBtn = document.getElementById('downloadTablesBtn');
+
+    downloadGraphsBtn.addEventListener('click', async function() {
+        await downloadVisualization('graphs', 'png');
+    });
+
+    downloadTablesBtn.addEventListener('click', async function() {
+        await downloadVisualization('tables', 'png');
+    });
+
+    async function downloadVisualization(type, format) {
+        try {
+            const authToken = '{{ request.session.auth_token }}';
+            const endpoint = type === 'graphs' 
+                ? '/missing/visualize-graphs' 
+                : '/missing/visualize-tables';
+            
+            const response = await fetch(
+                `{{ service_url }}${endpoint}?format=${format}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    }
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+            
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `imputation_${type}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+        } catch (error) {
+            alert('Ошибка скачивания: ' + error.message);
+        }
+    }
+    
+    // Проверяем, что все необходимые элементы существуют
+    if (!analyzeBtn || !proceedToImputationBtn || !processBtn || !fileSelectionSection || 
+        !analysisSection || !imputationSection || !resultsSection || !columnStats || 
+        !missingMatrixBefore || !downloadCsvBtn || !downloadExcelBtn || !statsBefore || 
+        !statsAfter || !visualizationContainer) {
+        console.error('Один или несколько элементов не найдены на странице');
+        return;
+    }
+    
+    let currentData = null;
+    let currentFileId = null;
+    
+    // Шаг 1: Анализ файла
+    analyzeBtn.addEventListener('click', async function() {
+        const fileSelect = document.getElementById('file-select');
+        currentFileId = fileSelect.value;
+        
+        if (!currentFileId) {
+            alert('Пожалуйста, выберите файл');
+            return;
+        }
+        
+        try {
+            const authToken = '{{ request.session.auth_token }}';
+            
+            // 1. Загружаем выбранный файл
+            const loadResponse = await fetch(`{{ data_service_url }}/data/load/${currentFileId}?sep=,`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+            
+            if (!loadResponse.ok) {
+                throw new Error('Ошибка загрузки файла');
+            }
+            
+            // 2. Анализируем данные
+            const response = await fetch(`{{ service_url }}/missing/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Ошибка анализа данных');
+            }
+            
+            const analysisResult = await response.json();
+            
+            // 3. Отображаем матрицу пропусков
+            const matrixResponse = await fetch(`{{ service_url }}/missing/visualize-matrix?format=png`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                }
+            });
+            
+            if (matrixResponse.ok) {
+                const blob = await matrixResponse.blob();
+                const imgUrl = URL.createObjectURL(blob);
+                missingMatrixBefore.innerHTML = `
+                    <h4>Матрица пропусков:</h4>
+                    <img src="${imgUrl}" alt="Матрица пропусков" style="max-width: 100%;">
+                `;
+            }
+            
+            // 4. Заполняем таблицу статистики
+            columnStats.innerHTML = '';
+            for (const [col, data] of Object.entries(analysisResult.stats)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${col}</td>
+                    <td>${data.dtype}</td>
+                    <td>${data.missing} (${data.missing_percent}%)</td>
+                    <td>${data.mechanism}</td>
+                    <td>${data.recommended_method}</td>
+                `;
+                columnStats.appendChild(row);
+            }
+            
+            // 5. Показываем раздел анализа
+            //fileSelectionSection.style.display = 'none';
+            analysisSection.style.display = 'block';
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка: ' + error.message);
+        }
+    });
+    
+    // Шаг 2: Переход к импутации
+    proceedToImputationBtn.addEventListener('click', function() {
+        //analysisSection.style.display = 'none';
+        imputationSection.style.display = 'block';
+    });
+    
+    // Шаг 3: Импутация данных
+    processBtn.addEventListener('click', async function() {
+        const thresholdInput = document.getElementById('threshold');
+        const methodSelect = document.getElementById('method');
+        
+        const threshold = thresholdInput.value;
+        const method = methodSelect.value === 'auto' ? null : methodSelect.value;
+        
+        try {
+            const authToken = '{{ request.session.auth_token }}';
+            
+            // 1. Выполняем импутацию
+            const response = await fetch(
+                `{{ service_url }}/missing/impute?threshold=${threshold}${method ? `&method=${method}` : ''}`, 
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    }
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error('Ошибка обработки данных');
+            }
+            
+            const result = await response.json();
+
+            if (result.warnings && result.warnings.length > 0) {
+                // Создаем элемент для предупреждения
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'alert alert-warning';
+                warningDiv.innerHTML = result.warnings.join('<br>');
+                
+                // Вставляем предупреждение перед визуализацией
+                visualizationContainer.prepend(warningDiv);
+                
+                // Или можно использовать alert (простой вариант)
+                alert(result.warnings.join('\n'));
+            }
+            
+            // 2. Получаем визуализацию
+            const visualizeResponse = await fetch(`{{ service_url }}/missing/visualize?format=png`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                }
+            });
+            
+            if (visualizeResponse.ok) {
+                const blob = await visualizeResponse.blob();
+                const imgUrl = URL.createObjectURL(blob);
+                visualizationContainer.innerHTML = `
+                    <img src="${imgUrl}" alt="Визуализация импутации" style="max-width: 100%;">
+
+                `;
+            }
+            
+            // 3. Заполняем статистику
+            statsBefore.innerHTML = formatStats(result.stats_before);
+            statsAfter.innerHTML = formatStats(result.stats_after);
+            
+            // 4. Показываем результаты
+            //imputationSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка: ' + error.message);
+        }
+    });
+    
+    // Шаг 4: Скачивание результатов
+    downloadCsvBtn.addEventListener('click', async function() {
+        await downloadResult('csv');
+    });
+    
+    downloadExcelBtn.addEventListener('click', async function() {
+        await downloadResult('xlsx');
+    });
+    
+    async function downloadResult(format) {
+        try {
+            const authToken = '{{ request.session.auth_token }}';
+            const response = await fetch(`{{ service_url }}/missing/download?format=${format}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+            
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `imputed_data.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+        } catch (error) {
+            alert('Ошибка скачивания: ' + error.message);
+        }
+    }
+    
+    function formatStats(stats) {
+        let html = '<table class="stats-table"><tr><th>Колонка</th><th>Пропущено</th><th>Тип</th></tr>';
+        
+        for (const [col, data] of Object.entries(stats)) {
+            html += `
+                <tr>
+                    <td>${col}</td>
+                    <td>${data.missing} (${data.missing_percent}%)</td>
+                    <td>${data.dtype}</td>
+                </tr>
+            `;
+        }
+        
+        html += '</table>';
+        return html;
+    }
+});
+</script>
+
+<style>
+.service-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.step-section {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: #45a049;
+}
+
+.stats-container {
+    margin-bottom: 20px;
+}
+
+.stats-before, .stats-after {
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.stats-table th, .stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.stats-table th {
+    background-color: #f2f2f2;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.visualization-container {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+
+.visualization-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-warning {
+    color: #8a6d3b;
+    background-color: #fcf8e3;
+    border-color: #faebcc;
+}
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    flex: 1 1 auto;
+    min-width: 150px;
+    text-align: center;
+}
+
+.btn:hover {
+    background: #45a049;
+}
+</style>
+{% endblock %}
