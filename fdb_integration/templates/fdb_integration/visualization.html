@@ -28,8 +28,10 @@
                 <div class="visualization-controls">
                     <h3>Параметры тепловой карты</h3>
                     <div class="form-group">
-                        <label for="heatmap-columns">Столбцы (названия через запятую):</label>
-                        <input type="text" id="heatmap-columns" class="form-control" placeholder="столбец1,столбец2,столбец3">
+                        <label for="heatmap-columns">Выберите параметры:</label>
+                        <select id="heatmap-columns" class="form-control" multiple size="5">
+                            <!-- Колонки будут загружены после выбора файла -->
+                        </select>
                         <small class="form-text">Оставьте пустым для использования всех столбцов</small>
                     </div>
                     <div class="form-group">
@@ -73,16 +75,25 @@
                 <div class="visualization-controls">
                     <h3>Параметры точечной диаграммы</h3>
                     <div class="form-group">
-                        <label for="scatter-x">Столбец для оси X (название):</label>
-                        <input type="text" id="scatter-x" class="form-control" required placeholder="Например: возраст">
+                        <label for="scatter-x">Параметр для оси X:</label>
+                        <select id="scatter-x" class="form-control" required>
+                            <option value="">-- Выберите параметр --</option>
+                            <!-- Колонки будут загружены после выбора файла -->
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label for="scatter-y">Столбец для оси Y (название):</label>
-                        <input type="text" id="scatter-y" class="form-control" required placeholder="Например: вес">
+                        <label for="scatter-y">Параметр для оси Y:</label>
+                        <select id="scatter-y" class="form-control" required>
+                            <option value="">-- Выберите параметр --</option>
+                            <!-- Колонки будут загружены после выбора файла -->
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label for="scatter-hue">Столбец для цвета точек (Название, необязательно):</label>
-                        <input type="text" id="scatter-hue" class="form-control" placeholder="Например: пол">
+                        <label for="scatter-hue">Параметр для цвета точек (необязательно):</label>
+                        <select id="scatter-hue" class="form-control">
+                            <option value="">-- Не использовать --</option>
+                            <!-- Колонки будут загружены после выбора файла -->
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="scatter-dot-size">Размер точек:</label>
@@ -530,11 +541,91 @@
                 }
             }
             
+            // Функция для получения колонок файла
+            async function getFileColumns(fileId) {
+                try {
+                    const response = await fetch(`{{ data_service_url }}/data/columns?file_id=${fileId}`, {
+                        headers: {
+                            'Authorization': `Bearer {{ request.session.auth_token }}`
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка загрузки колонок');
+                    return await response.json();
+                } catch (error) {
+                    showError(error.message);
+                    return [];
+                }
+            }
+
+            // Обновление select с колонками
+            function updateColumnsSelect(selectId, columns, isMultiple = false) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '';
+                
+                if (isMultiple) {
+                    // Для мультивыбора оставляем пустым первый вариант
+                } else {
+                    // Для обычного выбора добавляем пустой вариант
+                    const emptyOption = document.createElement('option');
+                    emptyOption.value = '';
+                    emptyOption.textContent = isMultiple ? '' : '-- Выберите столбец --';
+                    select.appendChild(emptyOption);
+                }
+                
+                columns.forEach(column => {
+                    const option = document.createElement('option');
+                    option.value = column;
+                    option.textContent = column;
+                    select.appendChild(option);
+                });
+            }
+            
+            // Обработчик изменения выбранного файла
+            document.getElementById('file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                
+                try {
+                    // 1. Загружаем выбранный файл
+                    const loadResponse = await fetch(`{{ data_service_url }}/data/load/${fileId}?sep=,`, {
+                        headers: {
+                            'Authorization': `Bearer {{ request.session.auth_token }}`
+                        }
+                    });
+                    
+                    if (!loadResponse.ok) {
+                        const error = await loadResponse.json().catch(() => null);
+                        throw new Error(error?.detail || 'Ошибка загрузки файла');
+                    }
+
+                    // 2. Получаем колонки из загруженного файла
+                    const columns = await getFileColumns(fileId);
+                    
+                    // 3. Обновляем все селекты с колонками
+                    updateColumnsSelect('heatmap-columns', columns, true);
+                    updateColumnsSelect('scatter-x', columns);
+                    updateColumnsSelect('scatter-y', columns);
+                    
+                    // Для hue добавляем пустой вариант
+                    const scatterHue = document.getElementById('scatter-hue');
+                    scatterHue.innerHTML = '<option value="">-- Не использовать --</option>';
+                    columns.forEach(column => {
+                        const option = document.createElement('option');
+                        option.value = column;
+                        option.textContent = column;
+                        scatterHue.appendChild(option);
+                    });
+                } catch (error) {
+                    showError(error.message);
+                }
+            });
+            
             // Обработчики для Heatmap
             document.getElementById('generate-heatmap').addEventListener('click', async function() {
                 const fileId = document.getElementById('file-select').value;
-                const columnsInput = document.getElementById('heatmap-columns').value;
-                const selectedColumns = columnsInput.split(',').map(col => col.trim()).filter(col => col);
+                const selectedOptions = Array.from(document.getElementById('heatmap-columns').selectedOptions);
+                const selectedColumns = selectedOptions.map(option => option.value);
                 const method = document.getElementById('heatmap-method').value;
                 const roundValue = parseInt(document.getElementById('heatmap-round').value);
                 
@@ -633,13 +724,14 @@
             
             document.getElementById('generate-heatmap-fast').addEventListener('click', async function() {
                 const fileId = document.getElementById('file-select').value;
-                const selectedColumns = document.getElementById('heatmap-columns').value.split(',').map(col => col.trim()).filter(col => col);
+                const selectedOptions = Array.from(document.getElementById('heatmap-columns').selectedOptions);
+                const selectedColumns = selectedOptions.map(option => option.value);
                 const method = document.getElementById('heatmap-method').value;
                 const title = document.getElementById('heatmap-title').value;
                 
                 try {
                     if (!fileId) throw new Error('Выберите файл с данными');
-                    const data_service_url = '{{ data_service_url }}';
+                    
                     // 1. Загружаем выбранный файл
                     const loadResponse = await fetch(`{{ data_service_url }}/data/load/${fileId}?sep=,`, {
                         headers: {
@@ -686,7 +778,7 @@
                     imageContainer.appendChild(document.createElement('br'));
                     imageContainer.appendChild(downloadBtn);
                 } catch (error) {
-
+                    showError(error.message);
                 }
             });
             
@@ -704,7 +796,7 @@
                 
                 try {
                     if (!fileId) throw new Error('Выберите файл с данными');
-                    const data_service_url = '{{ data_service_url }}';
+                    
                     // 1. Загружаем выбранный файл
                     const loadResponse = await fetch(`{{ data_service_url }}/data/load/${fileId}?sep=,`, {
                         headers: {
@@ -770,7 +862,7 @@
                     table.appendChild(tbody);
                     resultDiv.appendChild(table);
                 } catch (error) {
-
+                    showError(error.message);
                 }
             });
             
@@ -790,7 +882,7 @@
                 
                 try {
                     if (!fileId) throw new Error('Выберите файл с данными');
-                    const data_service_url = '{{ data_service_url }}';
+                    
                     // 1. Загружаем выбранный файл 
                     const loadResponse = await fetch(`{{ data_service_url }}/data/load/${fileId}?sep=,`, {
                         headers: {
@@ -838,7 +930,7 @@
                     imageContainer.appendChild(document.createElement('br'));
                     imageContainer.appendChild(downloadBtn);
                 } catch (error) {
-
+                    showError(error.message);
                 }
             });
         });

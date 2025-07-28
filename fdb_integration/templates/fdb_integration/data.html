@@ -50,12 +50,18 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="heightColumn">Столбец с ростом (название):</label>
-                                <input type="text" id="heightColumn" class="form-control" required>
+                                <label for="heightColumn">Столбец с ростом:</label>
+                                <select id="heightColumn" class="form-control" required>
+                                    <option value="">-- Выберите столбец --</option>
+                                    <!-- Колонки будут загружены после выбора файла -->
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label for="weightColumn">Столбец с весом (название):</label>
-                                <input type="text" id="weightColumn" class="form-control" required>
+                                <label for="weightColumn">Столбец с весом:</label>
+                                <select id="weightColumn" class="form-control" required>
+                                    <option value="">-- Выберите столбец --</option>
+                                    <!-- Колонки будут загружены после выбора файла -->
+                                </select>
                             </div>
                             <div class="form-group form-check">
                                 <input type="checkbox" id="roundValue" class="form-check-input" checked>
@@ -372,6 +378,36 @@
                 modal.style.display = 'block';
             }
             
+            // Функция для получения колонок файла
+            async function getFileColumns(fileId) {
+                try {
+                    const response = await fetch(`${serviceUrl}/data/columns?file_id=${fileId}`, {
+                        headers: {
+                            'Authorization': `Bearer {{ request.session.auth_token }}`
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Ошибка загрузки колонок');
+                    return await response.json();
+                } catch (error) {
+                    showError(error.message);
+                    return [];
+                }
+            }
+
+            // Обновление select с колонками
+            function updateColumnsSelect(selectId, columns) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">-- Выберите столбец --</option>';
+                
+                columns.forEach(column => {
+                    const option = document.createElement('option');
+                    option.value = column;
+                    option.textContent = column;
+                    select.appendChild(option);
+                });
+            }
+            
             // Загрузка списка файлов при открытии страницы
             loadUserFiles();
             
@@ -401,6 +437,35 @@
                     showError('Не удалось загрузить список файлов: ' + error.message);
                 }
             }
+
+            // Обработчик изменения выбранного файла
+            document.getElementById('bmi-file-select').addEventListener('change', async function() {
+                const fileId = this.value;
+                if (!fileId) return;
+                
+                try {
+                    // 1. Загружаем выбранный файл
+                    const loadResponse = await fetch(`${serviceUrl}/data/load/${fileId}?sep=,`, {
+                        headers: {
+                            'Authorization': `Bearer {{ request.session.auth_token }}`
+                        }
+                    });
+                    
+                    if (!loadResponse.ok) {
+                        const error = await loadResponse.json().catch(() => null);
+                        throw new Error(error?.detail || 'Не удалось загрузить файл');
+                    }
+
+                    // 2. Получаем колонки из загруженного файла
+                    const columns = await getFileColumns(fileId);
+                    
+                    // 3. Обновляем селекторы с колонками
+                    updateColumnsSelect('heightColumn', columns);
+                    updateColumnsSelect('weightColumn', columns);
+                } catch (error) {
+                    showError(error.message);
+                }
+            });
 
             // Простой калькулятор ИМТ
             document.getElementById('bmiSimpleForm').addEventListener('submit', async function(e) {
