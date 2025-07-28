@@ -1,0 +1,14 @@
+fastapi[all]
+pandas
+numpy
+openpyxl
+scikit-learn
+statsmodels
+missingno
+matplotlib
+seaborn
+redis
+httpx
+python-multipart
+python-dotenv
+pydantic-settings

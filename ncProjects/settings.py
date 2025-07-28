@@ -48,15 +48,15 @@ MIDDLEWARE = [
 ]
 
 FASTAPI_SERVICES = {
-    'auth': 'http://localhost:8000',
-    'storage': 'http://localhost:8001',
+    'auth': 'http://127.0.0.1:8000',
+    'storage': 'http://127.0.0.1:8001',
     'data': 'http://localhost:8002',
     'visualization': 'http://localhost:8003',
     'missing': 'http://localhost:8004'
 }
 FDB_SERVICES = {
-    'auth_service': 'http://localhost:8000',
-    'storage_service': 'http://localhost:8001',
+    'auth_service': 'http://127.0.0.1:8000',
+    'storage_service': 'http://127.0.0.1:8001',
     'data_service': 'http://localhost:8002',
     'visualization_service': 'http://localhost:8003',
     'missing_data_service': 'http://localhost:8004',
@@ -102,6 +102,28 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    # 'fdb_postgres': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'main',
+    #     'USER': 'postgres',
+    #     'PASSWORD': 'postgres',
+    #     'HOST': 'localhost',
+    #     'PORT': '5432',
+    # }
+    'fdb_sqlite': {  # для FastAPI модуля
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'fastapi_db.sqlite3',
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://localhost:6379/",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
 
