@@ -202,7 +202,8 @@ async def get_user_files(
     user_id: str = Depends(get_current_user_uuid),
     session: AsyncSession = Depends(async_db.get_async_session),
 ) -> Sequence[StorageFileList]:
-    return await select_user_files(user_id=user_id, session=session)
+    files = await select_user_files(user_id=user_id, session=session)
+    return files
 
 
 @router.get("/list/group/{group_id}")
@@ -240,7 +241,7 @@ async def download_file(
     session: AsyncSession = Depends(async_db.get_async_session),
 ) -> FileResponse:
     storage_file = await get_file(file_id=file_id, user_id=user_id, session=session)
-    return FileResponse(storage_file.path, filename=storage_file.filename)
+    return FileResponse(storage_file.full_path, filename=storage_file.filename)
 
 @router.patch("/rename/{file_id}")
 async def patch_file(

@@ -1,29 +1,16 @@
 import pandas as pd
 import pickle
-import redis.asyncio as redis
-
+from pathlib import Path
 from fastapi_missing.app.settings import settings
 from fastapi_missing.app.exceptions import DataNotFound
 
-class RedisConnection:
-    redis = None
-
-    @classmethod
-    async def connect(cls):
-        if cls.redis is None:
-            cls.redis = redis.Redis(host=settings.redis_host, port=settings.redis_port)
-        try:
-            await cls.redis.ping()
-        except Exception as error:
-            print(f"Неудачная попытка подключиться к Redis: {error}")
-
-    @classmethod
-    async def disconnect(cls):
-        if redis is not None:
-            try:
-                await cls.redis.aclose()
-            except Exception as error:
-                print(f"Произошла ошибка при разрыве соединения с Redis: {error}")
+class LocalStorage:
+    @staticmethod
+    def _get_user_dir(user_id: str) -> Path:
+        """Создает папку для хранения данных пользователя"""
+        user_dir = Path(settings.storage_dir) / "user_data" / user_id
+        user_dir.mkdir(parents=True, exist_ok=True)
+        return user_dir
 
     @classmethod
     async def set_dataframe(
@@ -33,12 +20,16 @@ class RedisConnection:
         key_suffix: str = "", 
         file_id: int | None = None
     ) -> None:
-        """Сохраняет DataFrame в Redis с возможностью добавления суффикса к ключу."""
-        key = f"{user_id}_data{key_suffix}"
-        await cls.redis.set(key, pickle.dumps(df))
+        """Сохраняет DataFrame в файл с возможностью добавления суффикса к имени файла."""
+        user_dir = cls._get_user_dir(user_id)
+        
+        # Сохраняем DataFrame с учетом суффикса
+        filename = f"data{key_suffix}.pkl"
+        df.to_pickle(user_dir / filename)
         
         if file_id is not None:
-            await cls.redis.set(f"{user_id}_file_id", pickle.dumps(file_id))
+            with open(user_dir / "file_id.pkl", "wb") as f:
+                pickle.dump(file_id, f)
 
     @classmethod
     async def get_dataframe(
@@ -46,10 +37,27 @@ class RedisConnection:
         user_id: str, 
         key_suffix: str = ""
     ) -> pd.DataFrame:
-        """Получает DataFrame из Redis по ключу с суффиксом."""
-        key = f"{user_id}_data{key_suffix}"
-        data = await cls.redis.get(key)
+        """Получает DataFrame из файла по суффиксу."""
+        user_dir = cls._get_user_dir(user_id)
+        filename = f"data{key_suffix}.pkl"
+        data_path = user_dir / filename
         
-        if data is None:
-            raise DataNotFound(f"Данные не найдены для ключа: {key}")
-        return pickle.loads(data)
+        if not data_path.exists():
+            raise DataNotFound(f"Data not found for user {user_id} with suffix {key_suffix}")
+            
+        return pd.read_pickle(data_path)
+
+    @classmethod
+    async def set_file_id(cls, user_id: str, file_id: int):
+        user_dir = cls._get_user_dir(user_id)
+        with open(user_dir / "file_id.pkl", "wb") as f:
+            pickle.dump(file_id, f)
+
+    @classmethod
+    async def get_file_id(cls, user_id: str) -> int:
+        user_dir = cls._get_user_dir(user_id)
+        file_id_path = user_dir / "file_id.pkl"
+        if not file_id_path.exists():
+            raise DataNotFound
+        with open(file_id_path, "rb") as f:
+            return pickle.load(f)

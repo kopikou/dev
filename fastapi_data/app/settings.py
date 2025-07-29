@@ -5,20 +5,18 @@ from pathlib import Path
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent
 
 
 class Settings(BaseSettings):
-    auth_host: str
-    auth_port: str
+    auth_host: str = "127.0.0.1"
+    auth_port: str = "8000"
 
-    storage_host: str
-    storage_port: str
+    storage_host: str = "127.0.0.1"
+    storage_port: str = "8001"
 
-    redis_host: str
-    redis_port: str
-
-    temp_dir: str = "temp"
+    storage_dir: str = str(BASE_DIR / "media" / "fdb_integration" / "storage")
+    temp_dir: str = str(BASE_DIR / "media" / "fdb_integration" / "temp")
 
     def get_url(self, host: str, port: str):
         return "http://{host}:{port}".format(

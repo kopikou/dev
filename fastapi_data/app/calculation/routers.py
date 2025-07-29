@@ -5,7 +5,7 @@ from fastapi_data.app.validation import ValidateData
 from fastapi_data.app.dependencies import get_user_data
 from fastapi_data.app.calculation.utils import calculate_bmi_group
 from fastapi_data.app.calculation.schemas import BMIDescription, ParamsForBMI
-from fastapi_data.app.memory import RedisConnection
+from fastapi_data.app.memory import LocalStorage
 
 router = APIRouter(prefix="/calculation", tags=["calculation"])
 
@@ -55,6 +55,5 @@ async def get_bmi_full(
         df = data["data"]
         for col in columns_to_save:
             df[col] = result[col]
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=df)
-
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=df)
     return result.to_dict()

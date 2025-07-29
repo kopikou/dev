@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 load_dotenv()
-
+from pathlib import Path
+from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(__file__).parent.parent.parent
 
@@ -17,10 +18,10 @@ class Settings(BaseSettings):
     postgres_port: int = 5432
     echo: bool = False
 
-    storage_dir: str
+    storage_dir: str = str(BASE_DIR / "media" / "fdb_integration" / "storage")
 
-    auth_host: str
-    auth_port: str
+    auth_host: str = "127.0.0.1"
+    auth_port: str = "8000"
 
     @property
     def db_url(self) -> str:

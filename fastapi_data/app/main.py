@@ -4,23 +4,13 @@ from contextlib import asynccontextmanager
 from fastapi_data.app.data.routers import router as data_router
 from fastapi_data.app.statistic.routers import router as statistic_router
 from fastapi_data.app.calculation.routers import router as calculation_router
-from fastapi_data.app.memory import RedisConnection
+from fastapi.middleware.cors import CORSMiddleware
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await RedisConnection.connect()
-    yield
-    await RedisConnection.disconnect()
-
-
-app = FastAPI(lifespan=lifespan)
-
+app = FastAPI()
 app.include_router(data_router)
 app.include_router(statistic_router)
 app.include_router(calculation_router)
 
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,3 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.on_event("startup")
+async def startup_event():
+    from fastapi_data.app.settings import settings
+    from pathlib import Path
+
+    Path(settings.temp_dir).mkdir(parents=True, exist_ok=True)

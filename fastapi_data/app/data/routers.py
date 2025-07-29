@@ -8,7 +8,7 @@ from fastapi_data.app.dependencies import (
     get_current_user_token,
     get_user_data,
 )
-from fastapi_data.app.memory import RedisConnection
+from fastapi_data.app.memory import LocalStorage
 from fastapi_data.app.requests import get_user_uuid
 from fastapi_data.app.data.requests import StorageServiceRequests
 from fastapi_data.app.exceptions import ColumnsNotFoundException
@@ -54,8 +54,7 @@ async def load_file(
     )
     df = df.rename(columns={col: col.strip() for col in df.columns})
 
-    await RedisConnection.set_dataframe(user_id=user_id, df=df, file_id=file_id)
-
+    await LocalStorage.set_dataframe(user_id=user_id, df=df, file_id=file_id)
 
 @router.get("/columns")
 async def get_columns(data: dict = Depends(get_user_data)) -> list[str]:
@@ -92,8 +91,7 @@ async def rename_columns(
         raise ColumnsNotFoundException(not_found_columns)
 
     df.rename(columns=columns, inplace=True)
-    await RedisConnection.set_dataframe(user_id=user_id, df=df)
-
+    await LocalStorage.set_dataframe(user_id=user_id, df=df)
     return df.columns
 
 
@@ -121,7 +119,7 @@ async def save_progress(
     finally:
         TempStorage.delete_file(filepath)
 
-    await RedisConnection.set_file_id(user_id=data["user_id"], file_id=response["id"])
+    await LocalStorage.set_file_id(user_id=data["user_id"], file_id=response["id"])
 
 
 @router.patch("/recovery")
@@ -137,7 +135,7 @@ async def recovery_data(
 
     if params.update_df is True:
         df = data["data"].assign(**recovery_df.to_dict())
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=df)
     return recovery_df.to_dict()
 
 
@@ -176,7 +174,7 @@ async def calculate(
 
     if params.update_df is True:
         df[params.column_name] = result
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=df)
 
     return {params.column_name: result.to_list()}
 
@@ -197,7 +195,7 @@ async def filter_data(
         raise EvalTypeException
 
     if params.update_df is True:
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=filtered_df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=filtered_df)
 
     return filtered_df.to_dict()
 
@@ -209,7 +207,7 @@ async def select_data(
     df = ValidateData.check_columns(df=data["data"], columns=params.columns)
 
     if params.update_df is True:
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=df)
 
     return df.to_dict()
 
@@ -240,6 +238,6 @@ async def merge_data(
         raise MergeColumnsTypeException
 
     if params.update_df is True:
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=result_df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=result_df)
 
     return result_df.to_dict()

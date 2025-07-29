@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
+from pathlib import Path
 from fastapi_storage.app.models import Group, StorageFile, User
 from fastapi_storage.app.storage import StogareController
 from fastapi_storage.app.exceptions import (
@@ -99,7 +99,8 @@ async def create_user_file(
 
 
 async def select_user_files(
-    user_id: str, session: AsyncSession
+    user_id: str, 
+    session: AsyncSession
 ) -> Sequence[StorageFile]:
     user = await select_user(user_id=user_id, session=session)
     return user.files

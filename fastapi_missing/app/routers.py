@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import warnings
 from typing import Optional
 from fastapi_missing.app.schemas import *
-
+from fastapi import HTTPException
 from fastapi_missing.app.dependencies import get_user_data
 from fastapi_missing.app.schemas import (
     ImputationMethod,
@@ -21,7 +21,7 @@ from fastapi_missing.app.exceptions import (
     MissingDataThresholdException,
     InvalidImputationMethodException,
 )
-from fastapi_missing.app.memory import RedisConnection
+from fastapi_missing.app.memory import LocalStorage
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.ensemble import RandomForestRegressor
 from statsmodels.imputation.mice import MICEData
@@ -285,12 +285,12 @@ async def impute_data(
     )
     
     # Сохраняем оба набора данных в Redis
-    await RedisConnection.set_dataframe(
+    await LocalStorage.set_dataframe(
         user_id=user_data["user_id"],
         df=result["imputed_data"],
         key_suffix="_imputed"
     )
-    await RedisConnection.set_dataframe(
+    await LocalStorage.set_dataframe(
         user_id=user_data["user_id"],
         df=result["original_data"],
         key_suffix="_original"
@@ -315,11 +315,11 @@ async def visualize_imputation(
 ) -> FileResponse:
     """Генерация комплексной визуализации до/после импутации."""
     # Получаем оба набора данных из Redis
-    df_before = await RedisConnection.get_dataframe(
+    df_before = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_original"
     )
-    df_after = await RedisConnection.get_dataframe(
+    df_after = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_imputed"
     )
@@ -364,40 +364,6 @@ async def visualize_imputation(
             ax.set_xlabel("Значение")
             ax.set_ylabel("Плотность")
             ax.legend()
-    
-    # # --- 3. Таблица механизмов пропусков для всех столбцов ---
-    # ax_mechanisms = fig.add_subplot(gs[total_rows-3, :])  # Отдельная строка для механизмов
-    # ax_mechanisms.axis('off')
-    
-    # # Подготовка данных для таблицы механизмов
-    # mechanism_data = []
-    # for col, mechanism in mechanisms.items():
-    #     missing_count = df_before[col].isnull().sum()
-    #     missing_percent = (missing_count / len(df_before)) * 100
-    #     dtype = df_before[col].dtype
-        
-    #     mechanism_data.append([
-    #         col,
-    #         str(dtype),
-    #         f"{missing_count} ({missing_percent:.1f}%)",
-    #         mechanism
-    #     ])
-    
-    # # Создаем таблицу механизмов
-    # mechanism_table = ax_mechanisms.table(
-    #     cellText=mechanism_data,
-    #     colLabels=["Колонка", "Тип данных", "Пропущено (до)", "Механизм пропусков"],
-    #     loc='center',
-    #     cellLoc='center'
-    # )
-    
-    # # Настраиваем таблицу механизмов
-    # mechanism_table.auto_set_font_size(False)
-    # mechanism_table.set_fontsize(10)
-    # mechanism_table.scale(1, 1.5)
-    
-    # # Добавляем заголовок
-    # ax_mechanisms.set_title("Механизмы пропущенных данных по всем столбцам", y=1.1)
     
     # --- 4. Полная описательная статистика для числовых колонок ---
     if n_numeric > 0:
@@ -488,7 +454,7 @@ async def download_imputed_data(
     user_data: dict = Depends(get_user_data),
 ) -> FileResponse:
     """Скачивание импутированных данных."""
-    df = await RedisConnection.get_dataframe(
+    df = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_imputed"
     )
@@ -522,7 +488,7 @@ async def analyze_data(
                 recommended_methods[col] = "random_forest" if df[col].dtype in [np.number, np.float64, np.int64] else "frequent"
     
     # Сохраняем оригинальные данные в Redis
-    await RedisConnection.set_dataframe(
+    await LocalStorage.set_dataframe(
         user_id=user_data["user_id"],
         df=df,
         key_suffix="_original"
@@ -561,11 +527,11 @@ async def visualize_imputation_graphs(
     user_data: dict = Depends(get_user_data),
 ) -> FileResponse:
     """Генерация графиков (матрицы пропусков и распределения)."""
-    df_before = await RedisConnection.get_dataframe(
+    df_before = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_original"
     )
-    df_after = await RedisConnection.get_dataframe(
+    df_after = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_imputed"
     )
@@ -613,11 +579,11 @@ async def visualize_imputation_tables(
     user_data: dict = Depends(get_user_data),
 ) -> FileResponse:
     """Генерация таблиц (статистика пропусков и описательная статистика)."""
-    df_before = await RedisConnection.get_dataframe(
+    df_before = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_original"
     )
-    df_after = await RedisConnection.get_dataframe(
+    df_after = await LocalStorage.get_dataframe(
         user_id=user_data["user_id"],
         key_suffix="_imputed"
     )

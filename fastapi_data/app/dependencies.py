@@ -4,7 +4,7 @@ from fastapi import Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from fastapi_data.app.requests import get_user_uuid
-from fastapi_data.app.memory import RedisConnection
+from fastapi_data.app.memory import LocalStorage
 
 
 security = HTTPBearer()
@@ -27,6 +27,6 @@ async def get_user_data(
     credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> pd.DataFrame:
     user_id = await get_current_user_uuid(credentials=credentials)
-    df = await RedisConnection.get_dataframe(user_id=user_id)
-    file_id = await RedisConnection.get_filet_id(user_id=user_id)
+    df = await LocalStorage.get_dataframe(user_id=user_id)
+    file_id = await LocalStorage.get_file_id(user_id=user_id)
     return {"user_id": user_id, "data": df, "file_id": file_id}

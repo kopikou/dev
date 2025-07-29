@@ -7,9 +7,9 @@ from sqlalchemy import ForeignKey, func
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID
-
+from pathlib import Path
 from fastapi_storage.app.database import Base
-
+from fastapi_storage.app.settings import settings
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = "users"
@@ -41,11 +41,16 @@ class FileType(Base):
 
 class StorageFile(Base):
     __tablename__ = "storage_files"
-
+    path: Mapped[str]
+    @property
+    def full_path(self) -> Path:
+        """Возвращает полный абсолютный путь к файлу"""
+        return Path(settings.storage_dir)/self.path.lstrip("storage/").lstrip("storage\\")#self.path.replace("storage\\", "").replace("storage/", "")#/ self.path.lstrip("storage/")
+    
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     creator_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     filename: Mapped[str]
-    path: Mapped[str]
+    
     size: Mapped[int]
     type_id: Mapped[int] = mapped_column(ForeignKey("file_types.id"))
     upload_date: Mapped[datetime] = mapped_column(

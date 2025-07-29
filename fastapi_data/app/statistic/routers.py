@@ -25,7 +25,7 @@ from fastapi_data.app.utils import TempStorage
 from fastapi_data.app.validation import ValidateData
 from fastapi_data.app.exceptions import ColumnsDuplicateException, ColumnsNotFoundException
 from fastapi_data.app.schemas import DataFormat
-from fastapi_data.app.memory import RedisConnection
+from fastapi_data.app.memory import LocalStorage
 
 
 router = APIRouter(prefix="/statistic", tags=["statistic"])
@@ -77,7 +77,7 @@ async def get_outliers(
 
     if params.update_df is True:
         df = data["data"].assign(**result)
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=df)
 
     return result
 
@@ -142,7 +142,7 @@ async def get_clusters(
     result = ClustersBuilder.build(df=df, method=method, n_clusters=params.n_clusters)
     if params.update_df is True:
         df = data["data"].assign(**result)
-        await RedisConnection.set_dataframe(user_id=data["user_id"], df=df)
+        await LocalStorage.set_dataframe(user_id=data["user_id"], df=df)
 
     return result
 

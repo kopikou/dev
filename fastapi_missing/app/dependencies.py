@@ -2,7 +2,7 @@ from fastapi import Security, HTTPException,Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from fastapi_missing.app.requests import get_user_uuid
-from fastapi_missing.app.memory import RedisConnection
+from fastapi_missing.app.memory import LocalStorage
 from typing import Optional
 
 security = HTTPBearer()
@@ -22,7 +22,7 @@ async def get_user_data(
     credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> dict:
     user_id = await get_current_user_uuid(credentials=credentials)
-    df = await RedisConnection.get_dataframe(user_id=user_id)
+    df = await LocalStorage.get_dataframe(user_id=user_id)
     return {"user_id": user_id, "data": df}
 
 async def get_user_data_with_original(
@@ -36,7 +36,7 @@ async def get_user_data_with_original(
     if not file_id:
         raise HTTPException(status_code=400, detail="File ID is required")
     
-    df = await RedisConnection.get_dataframe(user_id=user_id)
+    df = await LocalStorage.get_dataframe(user_id=user_id)
     
     return {
         "user_id": user_id,

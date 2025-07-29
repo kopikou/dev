@@ -12,7 +12,6 @@ from fastapi_missing.app.schemas import *
 
 import base64
 from io import BytesIO
-import missingno as msno
 
 class TempStorage:
     basedir = Path(settings.temp_dir)

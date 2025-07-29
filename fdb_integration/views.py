@@ -5,9 +5,75 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.conf import settings
 import requests
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from io import BytesIO
+
+@csrf_exempt
+def proxy_view(request, path, service_url):
+    url = f"{service_url}/{path}"
+    
+    # Проксируем заголовки
+    headers = {
+        key: value 
+        for key, value in request.headers.items() 
+        if key.lower() not in ['host', 'content-length', 'content-type']
+    }
+    
+    if request.session.get('auth_token'):
+        headers['Authorization'] = f'Bearer {request.session.get("auth_token")}'
+    
+    try:
+        # Проксируем запрос
+        response = requests.request(
+            method=request.method,
+            url=url,
+            headers=headers,
+            data=request.body,
+            params=request.GET,
+            cookies=request.COOKIES,
+            allow_redirects=False,
+            timeout=30
+        )
+        
+        # Обрабатываем файловые ответы
+        if 'image' in response.headers.get('Content-Type', '') or \
+           'application/octet-stream' in response.headers.get('Content-Type', ''):
+            return HttpResponse(
+                BytesIO(response.content),
+                content_type=response.headers.get('Content-Type'),
+                status=response.status_code
+            )
+        
+        # Возвращаем JSON ответ
+        if 'application/json' in response.headers.get('Content-Type', ''):
+            return HttpResponse(
+                response.content,
+                content_type='application/json',
+                status=response.status_code
+            )
+        
+        # Для всех остальных типов
+        proxy_response = HttpResponse(
+            content=response.content,
+            status=response.status_code,
+            content_type=response.headers.get('Content-Type')
+        )
+        
+        # Проксируем важные заголовки
+        for header in ['Cache-Control', 'Expires', 'Location', 'Set-Cookie']:
+            if header in response.headers:
+                proxy_response[header] = response.headers[header]
+                
+        return proxy_response
+        
+    except requests.exceptions.RequestException as e:
+        return HttpResponse(
+            content=str(e),
+            status=502,
+            content_type='text/plain'
+        )
 
 def get_fdb_service_url(service_name):
     services = getattr(settings, 'FDB_SERVICES', {})

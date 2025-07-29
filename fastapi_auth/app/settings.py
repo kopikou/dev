@@ -11,9 +11,9 @@ class Settings(BaseSettings):
     postgres_password: str = "postgres"
     postgres_host: str = "localhost"
     postgres_port: int = 5432
-    echo: bool = False
+    echo: bool = False 
 
-    secret_key: str
+    secret_key: str = "valorant"
     secret_algorithm: str = "HS256"
 
     @property

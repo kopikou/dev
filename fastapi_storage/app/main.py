@@ -4,6 +4,8 @@ from fastapi_storage.app.database import async_db, Base
 from fastapi_storage.app.routers import router
 from fastapi_storage.app.models import FileTypeEnum, FileType
 import asyncio
+from pathlib import Path
+from fastapi_storage.app.settings import settings
 
 app = FastAPI()
 app.add_middleware(
@@ -32,6 +34,10 @@ async def init_file_types():
 
 @app.on_event("startup")
 async def on_startup():
+    # Создаем папку для хранения файлов
+    storage_dir = Path(settings.storage_dir)
+    storage_dir.mkdir(parents=True, exist_ok=True)
+
     await create_tables()
     await init_file_types() 
 app.include_router(router)

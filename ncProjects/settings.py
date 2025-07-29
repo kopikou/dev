@@ -47,13 +47,6 @@ MIDDLEWARE = [
     'fdb_integration.middleware.AuthRequiredMiddleware',
 ]
 
-FASTAPI_SERVICES = {
-    'auth': 'http://127.0.0.1:8000',
-    'storage': 'http://127.0.0.1:8001',
-    'data': 'http://localhost:8002',
-    'visualization': 'http://localhost:8003',
-    'missing': 'http://localhost:8004'
-}
 FDB_SERVICES = {
     'auth_service': 'http://127.0.0.1:8000',
     'storage_service': 'http://127.0.0.1:8001',
@@ -117,15 +110,15 @@ DATABASES = {
     }
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://localhost:6379/",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://localhost:6379/",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 
 # Password validation

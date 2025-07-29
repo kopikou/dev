@@ -1,18 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-
 from fastapi_visualization.app.routers import router
-from fastapi_visualization.app.memory import RedisConnection
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await RedisConnection.connect()
-    yield
-    await RedisConnection.disconnect()
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.include_router(router)
 

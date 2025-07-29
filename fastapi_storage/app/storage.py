@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from fastapi_storage.app.settings import settings
 from fastapi_storage.app.models import FileTypeEnum
 from fastapi_storage.app.exceptions import FileNameException, FilepathNotFoundException
@@ -6,11 +7,11 @@ from fastapi_storage.app.exceptions import FileNameException, FilepathNotFoundEx
 
 class StogareController:
     basedir = settings.storage_dir
-
     @classmethod
     def get_user_dir(cls, user_id: str, version: int | str = 1) -> str:
         dir_path = os.path.join(cls.basedir, str(user_id), str(version))
         os.makedirs(dir_path, exist_ok=True)
+        print(dir_path)
         return dir_path
 
     @classmethod
